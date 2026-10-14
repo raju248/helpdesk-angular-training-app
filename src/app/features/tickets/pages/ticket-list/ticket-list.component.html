@@ -4,7 +4,20 @@
     Track your support requests and follow their progress.
   </p>
 
-  <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end">
+  <div class="mt-6">
+    <label for="ticket-search" class="block text-sm font-medium">Search tickets</label>
+    <input
+      id="ticket-search"
+      name="search"
+      type="search"
+      autocomplete="off"
+      [ngModel]="searchTerm"
+      (ngModelChange)="search($event)"
+      class="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600"
+    />
+  </div>
+
+  <div class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
     <div class="flex-1">
       <label for="status-filter" class="block text-sm font-medium">Status</label>
       <select
@@ -34,7 +47,7 @@
     <button
       type="button"
       (click)="clearFilters()"
-      [disabled]="!statusFilter && !priorityFilter"
+      [disabled]="!statusFilter && !priorityFilter && !searchTerm"
       class="self-start rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50 sm:self-auto"
     >
       Clear filters
@@ -55,7 +68,7 @@
   </div>
 
   <p *ngIf="!loading && !errorMessage && tickets.length === 0" class="mt-6 text-slate-600">
-    {{ statusFilter || priorityFilter ? 'No tickets match these filters.' : 'No tickets yet.' }}
+    {{ statusFilter || priorityFilter || searchTerm ? 'No tickets match these filters.' : 'No tickets yet.' }}
   </p>
 
   <ul *ngIf="!loading && !errorMessage && tickets.length > 0" class="mt-6 space-y-4">
@@ -79,6 +92,7 @@
           </div>
           <a
             [routerLink]="['/tickets', ticket.id]"
+            queryParamsHandling="preserve"
             class="self-start rounded-lg bg-indigo-600 px-3 py-2 font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
             Open ticket

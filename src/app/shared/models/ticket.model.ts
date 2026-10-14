@@ -3,6 +3,7 @@ import { TicketPriority, TicketStatus } from './ticket.types';
 export interface TicketFilters {
   status?: TicketStatus;
   priority?: TicketPriority;
+  search?: string;
 }
 
 export interface Ticket {
