@@ -21,6 +21,16 @@ npm ci
 
 ## Run the application
 
+Start the fake API in one terminal:
+
+```bash
+npm run api
+```
+
+The fake API runs at [http://127.0.0.1:3000](http://127.0.0.1:3000).
+
+In a separate terminal, start the Angular application:
+
 ```bash
 npm start
 ```

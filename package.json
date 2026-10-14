@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "api": "json-server --watch db.json --host 127.0.0.1 --port 3000",
     "build": "ng build",
     "watch": "ng build --watch --configuration development"
   },
@@ -28,6 +29,7 @@
     "@angular/cli": "^22.2.2",
     "@angular/compiler-cli": "^22.2.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "json-server": "0.17.4",
     "postcss": "^8.5.30",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2"

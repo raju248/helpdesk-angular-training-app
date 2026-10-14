@@ -1,0 +1,100 @@
+{
+  "tickets": [
+    {
+      "id": 1,
+      "title": "Cannot sign in to my account",
+      "description": "The password reset link expires before I can use it.",
+      "priority": "high",
+      "status": "open",
+      "categoryId": 1,
+      "customerId": 1,
+      "assigneeId": null,
+      "links": [],
+      "createdAt": "2026-10-14T10:00:00.000Z",
+      "updatedAt": "2026-10-14T18:50:00.000Z"
+    },
+    {
+      "id": 2,
+      "title": "Email notifications arrive late",
+      "description": "Support notifications take several hours to reach my inbox.",
+      "priority": "medium",
+      "status": "in-progress",
+      "categoryId": 2,
+      "customerId": 1,
+      "assigneeId": 2,
+      "links": [],
+      "createdAt": "2026-10-13T09:00:00.000Z",
+      "updatedAt": "2026-10-14T17:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "title": "Profile picture was not updating",
+      "description": "The updated picture now appears correctly on my profile.",
+      "priority": "low",
+      "status": "resolved",
+      "categoryId": 1,
+      "customerId": 1,
+      "assigneeId": 2,
+      "links": [],
+      "createdAt": "2026-10-12T09:00:00.000Z",
+      "updatedAt": "2026-10-13T15:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "title": "Request a copy of my receipt",
+      "description": "The receipt has been sent and the request is complete.",
+      "priority": "medium",
+      "status": "closed",
+      "categoryId": 3,
+      "customerId": 1,
+      "assigneeId": 2,
+      "links": [],
+      "createdAt": "2026-10-06T09:00:00.000Z",
+      "updatedAt": "2026-10-07T15:00:00.000Z"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "Demo Customer",
+      "email": "customer@helpdesk.test",
+      "password": "customer123",
+      "role": "customer"
+    },
+    {
+      "id": 2,
+      "name": "Demo Agent",
+      "email": "agent@helpdesk.test",
+      "password": "agent123",
+      "role": "agent"
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "ticketId": 1,
+      "userId": 1,
+      "body": "I have tried requesting a new reset link, but it still expires.",
+      "createdAt": "2026-10-14T10:10:00.000Z"
+    },
+    {
+      "id": 2,
+      "ticketId": 1,
+      "userId": 2,
+      "body": "I will check the expiry settings for the reset links.",
+      "createdAt": "2026-10-14T18:50:00.000Z"
+    },
+    {
+      "id": 3,
+      "ticketId": 2,
+      "userId": 2,
+      "body": "We are investigating the email delivery delay.",
+      "createdAt": "2026-10-14T17:00:00.000Z"
+    }
+  ],
+  "categories": [
+    { "id": 1, "name": "Account" },
+    { "id": 2, "name": "Notifications" },
+    { "id": 3, "name": "Billing" }
+  ]
+}
