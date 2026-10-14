@@ -51,6 +51,21 @@
       "links": [],
       "createdAt": "2026-10-06T09:00:00.000Z",
       "updatedAt": "2026-10-07T15:00:00.000Z"
+    },
+    {
+      "title": "create new ticket",
+      "description": "cant create new ticket",
+      "priority": "medium",
+      "categoryId": 1,
+      "links": [
+        "https://github.com/raju248/helpdesk-angular-training-app"
+      ],
+      "updatedAt": "2026-10-14T22:12:32.310Z",
+      "status": "open",
+      "customerId": 2,
+      "assigneeId": null,
+      "createdAt": "2026-10-14T22:12:32.310Z",
+      "id": 5
     }
   ],
   "users": [
@@ -93,8 +108,17 @@
     }
   ],
   "categories": [
-    { "id": 1, "name": "Account" },
-    { "id": 2, "name": "Notifications" },
-    { "id": 3, "name": "Billing" }
+    {
+      "id": 1,
+      "name": "Account"
+    },
+    {
+      "id": 2,
+      "name": "Notifications"
+    },
+    {
+      "id": 3,
+      "name": "Billing"
+    }
   ]
 }

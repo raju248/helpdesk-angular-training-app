@@ -19,3 +19,10 @@ export interface Ticket {
   createdAt: string;
   updatedAt: string;
 }
+
+export type CreateTicketRequest = Omit<Ticket, 'id'>;
+
+export type UpdateTicketRequest = Pick<
+  Ticket,
+  'title' | 'description' | 'priority' | 'categoryId' | 'links' | 'updatedAt'
+>;

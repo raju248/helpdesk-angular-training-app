@@ -6,7 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { DemoUser } from '../../../core/auth/user.model';
 import { Category } from '../../../shared/models/category.model';
 import { Comment } from '../../../shared/models/comment.model';
-import { Ticket, TicketFilters } from '../../../shared/models/ticket.model';
+import { CreateTicketRequest, Ticket, TicketFilters, UpdateTicketRequest } from '../../../shared/models/ticket.model';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
@@ -35,6 +35,14 @@ export class TicketService {
 
   getTicket(id: number): Observable<Ticket> {
     return this.http.get<Ticket>(`${this.ticketsUrl}/${id}`);
+  }
+
+  createTicket(ticket: CreateTicketRequest): Observable<Ticket> {
+    return this.http.post<Ticket>(this.ticketsUrl, ticket);
+  }
+
+  updateTicket(id: number, changes: UpdateTicketRequest): Observable<Ticket> {
+    return this.http.patch<Ticket>(`${this.ticketsUrl}/${id}`, changes);
   }
 
   getComments(ticketId: number): Observable<Comment[]> {

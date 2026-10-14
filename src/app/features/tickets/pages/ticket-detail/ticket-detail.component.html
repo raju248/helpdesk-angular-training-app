@@ -22,6 +22,13 @@
   </div>
 
   <div *ngIf="ticket as currentTicket" class="mt-6">
+    <a
+      [routerLink]="['/tickets', currentTicket.id, 'edit']"
+      queryParamsHandling="preserve"
+      class="mb-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+    >
+      Edit ticket
+    </a>
     <article [appPriorityHighlight]="currentTicket.priority" class="rounded-xl border border-slate-200 p-5 sm:p-6">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>

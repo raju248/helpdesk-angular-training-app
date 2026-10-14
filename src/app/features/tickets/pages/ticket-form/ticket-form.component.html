@@ -1,0 +1,176 @@
+<section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+  <a
+    [routerLink]="editMode && ticketId ? ['/tickets', ticketId] : ['/tickets']"
+    queryParamsHandling="preserve"
+    class="inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+  >
+    {{ editMode && ticketId ? 'Back to ticket' : 'Back to tickets' }}
+  </a>
+
+  <h1 class="mt-6 text-3xl font-bold tracking-tight">{{ editMode ? 'Edit ticket' : 'Create ticket' }}</h1>
+  <p class="mt-3 leading-7 text-slate-600">
+    {{ editMode ? 'Update the details of your support request.' : 'Tell us about your support request.' }}
+  </p>
+
+  <p *ngIf="loading" role="status" class="mt-6 text-slate-600">Loading ticket form...</p>
+
+  <div *ngIf="loadError" role="alert" class="mt-6 rounded-lg bg-red-50 p-4 text-red-700">
+    <p>{{ loadError }}</p>
+    <button
+      *ngIf="!notFound"
+      type="button"
+      (click)="loadForm()"
+      class="mt-3 rounded-lg border border-red-300 px-3 py-2 text-sm font-medium hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+    >
+      Try again
+    </button>
+  </div>
+
+  <div *ngIf="!loading && !loadError && categories.length === 0" class="mt-6 rounded-lg bg-slate-50 p-4 text-slate-600">
+    <p>No categories are available. A category is needed to save a ticket.</p>
+    <button
+      type="button"
+      (click)="loadForm()"
+      class="mt-3 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+    >
+      Try again
+    </button>
+  </div>
+
+  <form
+    *ngIf="!loading && !loadError && categories.length > 0"
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    class="mt-6 space-y-6"
+    novalidate
+  >
+    <div>
+      <label for="ticket-title" class="block text-sm font-medium">Title (required)</label>
+      <input
+        id="ticket-title"
+        type="text"
+        formControlName="title"
+        required
+        aria-describedby="ticket-title-error"
+        [attr.aria-invalid]="form.controls.title.invalid && (form.controls.title.dirty || form.controls.title.touched)"
+        class="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
+      />
+      <p
+        id="ticket-title-error"
+        *ngIf="form.controls.title.invalid && (form.controls.title.dirty || form.controls.title.touched)"
+        class="mt-2 text-sm text-red-700"
+      >
+        Enter a title.
+      </p>
+    </div>
+
+    <div>
+      <label for="ticket-description" class="block text-sm font-medium">Description (optional)</label>
+      <textarea
+        id="ticket-description"
+        formControlName="description"
+        rows="5"
+        class="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
+      ></textarea>
+    </div>
+
+    <div class="grid gap-6 sm:grid-cols-2">
+      <div>
+        <label for="ticket-priority" class="block text-sm font-medium">Priority (required)</label>
+        <select
+          id="ticket-priority"
+          formControlName="priority"
+          required
+          class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
+        >
+          <option *ngFor="let option of priorityOptions" [value]="option.value">{{ option.label }}</option>
+        </select>
+      </div>
+      <div>
+        <label for="ticket-category" class="block text-sm font-medium">Category (required)</label>
+        <select
+          id="ticket-category"
+          formControlName="categoryId"
+          required
+          aria-describedby="ticket-category-error"
+          [attr.aria-invalid]="form.controls.categoryId.invalid && (form.controls.categoryId.dirty || form.controls.categoryId.touched)"
+          class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
+        >
+          <option [ngValue]="null">Choose a category</option>
+          <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
+        </select>
+        <p
+          id="ticket-category-error"
+          *ngIf="form.controls.categoryId.invalid && (form.controls.categoryId.dirty || form.controls.categoryId.touched)"
+          class="mt-2 text-sm text-red-700"
+        >
+          Choose a category.
+        </p>
+      </div>
+    </div>
+
+    <fieldset formArrayName="links" class="border-t border-slate-200 pt-5">
+      <legend class="text-sm font-medium">Links (optional)</legend>
+      <p class="text-sm text-slate-500">Add any related HTTP or HTTPS links.</p>
+      <p *ngIf="links.length === 0" class="mt-3 text-sm text-slate-500">No links added.</p>
+      <div *ngFor="let link of links.controls; let i = index" class="mt-4">
+        <label [for]="'ticket-link-' + i" class="block text-sm font-medium">Link {{ i + 1 }}</label>
+        <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-start">
+          <input
+            [id]="'ticket-link-' + i"
+            type="url"
+            [formControlName]="i"
+            required
+            [attr.aria-describedby]="'ticket-link-error-' + i"
+            [attr.aria-invalid]="link.invalid && (link.dirty || link.touched)"
+            class="block min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
+          />
+          <button
+            type="button"
+            (click)="removeLink(i)"
+            [disabled]="saving"
+            [attr.aria-label]="'Remove link ' + (i + 1)"
+            class="self-start rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
+          >
+            Remove
+          </button>
+        </div>
+        <p
+          [id]="'ticket-link-error-' + i"
+          *ngIf="link.invalid && (link.dirty || link.touched)"
+          class="mt-2 text-sm text-red-700"
+        >
+          Enter a valid HTTP or HTTPS link, or remove this row.
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="addLink()"
+        [disabled]="saving"
+        class="mt-4 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
+      >
+        Add link
+      </button>
+    </fieldset>
+
+    <p *ngIf="saveError" role="alert" class="rounded-lg bg-red-50 p-4 text-red-700">{{ saveError }}</p>
+    <p *ngIf="saving" role="status" class="text-sm text-slate-600">Saving ticket...</p>
+
+    <div class="flex flex-wrap gap-3 border-t border-slate-200 pt-5">
+      <button
+        type="submit"
+        [disabled]="saving"
+        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
+      >
+        {{ saving ? 'Saving...' : editMode ? 'Save changes' : 'Create ticket' }}
+      </button>
+      <a
+        [routerLink]="editMode && ticketId ? ['/tickets', ticketId] : ['/tickets']"
+        queryParamsHandling="preserve"
+        class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+</section>
