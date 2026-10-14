@@ -1,5 +1,5 @@
 import { NgIf } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -15,6 +15,7 @@ import { User } from './core/auth/user.model';
 export class AppComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private currentUserSubscription?: Subscription;
 
   protected readonly title = 'Helpdesk Ticket Manager';
@@ -23,6 +24,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.currentUserSubscription = this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
+      this.changeDetectorRef.markForCheck();
     });
   }
 

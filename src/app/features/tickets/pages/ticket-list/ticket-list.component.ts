@@ -14,6 +14,7 @@ import {
   switchMap,
 } from 'rxjs';
 
+import { ApiError } from '../../../../core/interceptors/api-error';
 import { TicketStatusBadgeComponent } from '../../../../shared/components/ticket-status-badge/ticket-status-badge.component';
 import { PriorityHighlightDirective } from '../../../../shared/directives/priority-highlight.directive';
 import { Ticket, TicketFilters } from '../../../../shared/models/ticket.model';
@@ -67,8 +68,10 @@ export class TicketListComponent implements OnInit, OnDestroy {
           this.changeDetectorRef.markForCheck();
 
           return this.ticketService.getTickets(filters).pipe(
-            catchError(() => {
-              this.errorMessage = 'Tickets could not be loaded. Please try again.';
+            catchError((error: unknown) => {
+              this.errorMessage = error instanceof ApiError
+                ? error.message
+                : 'Tickets could not be loaded. Please try again.';
               // Complete this failed request while keeping future searches active.
               return new Observable<Ticket[]>((subscriber) => subscriber.complete());
             }),

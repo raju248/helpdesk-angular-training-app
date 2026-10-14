@@ -1,7 +1,7 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { DEMO_USERS } from '../../../../core/auth/demo-users';
@@ -16,11 +16,14 @@ import { DemoUser } from '../../../../core/auth/user.model';
 export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly demoUsers = DEMO_USERS;
   protected email = '';
   protected password = '';
-  protected errorMessage = '';
+  protected errorMessage = this.route.snapshot.queryParamMap.get('reason') === 'session-expired'
+    ? 'Your session has expired. Please sign in again.'
+    : '';
 
   protected login(form: NgForm): void {
     this.errorMessage = '';

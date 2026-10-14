@@ -1,10 +1,10 @@
 import { DatePipe, NgFor, NgIf } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription, finalize, forkJoin } from 'rxjs';
 
 import { User } from '../../../../core/auth/user.model';
+import { ApiError } from '../../../../core/interceptors/api-error';
 import { CommentComponent } from '../../../../shared/components/comment/comment.component';
 import { TicketStatusBadgeComponent } from '../../../../shared/components/ticket-status-badge/ticket-status-badge.component';
 import { PriorityHighlightDirective } from '../../../../shared/directives/priority-highlight.directive';
@@ -87,11 +87,15 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
           this.users = users;
           this.categories = categories;
         },
-        error: (error: HttpErrorResponse) => {
-          this.notFound = error.status === 404 && !!error.url?.endsWith(`/tickets/${this.ticketId}`);
+        error: (error: unknown) => {
+          this.notFound = error instanceof ApiError
+            && error.status === 404
+            && !!error.url?.endsWith(`/tickets/${this.ticketId}`);
           this.errorMessage = this.notFound
             ? 'This ticket could not be found.'
-            : 'Ticket details could not be loaded. Please try again.';
+            : error instanceof ApiError
+              ? error.message
+              : 'Ticket details could not be loaded. Please try again.';
         },
       });
   }
