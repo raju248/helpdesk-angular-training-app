@@ -11,6 +11,7 @@
       <div class="flex flex-col gap-3 sm:items-end">
         <nav aria-label="Main navigation" class="flex flex-wrap gap-1 text-slate-600">
           <a
+            *ngIf="currentUser"
             routerLink="/tickets"
             routerLinkActive="bg-indigo-50 text-indigo-700"
             ariaCurrentWhenActive="page"
@@ -28,6 +29,7 @@
             Login
           </a>
           <a
+            *ngIf="currentUser?.role === 'agent'"
             routerLink="/admin"
             routerLinkActive="bg-indigo-50 text-indigo-700"
             ariaCurrentWhenActive="page"
