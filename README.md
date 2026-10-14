@@ -2,7 +2,7 @@
 
 A helpdesk ticket management application built with standalone Angular components and Tailwind CSS.
 
-The application currently provides a welcome page with routing configured.
+The application includes navigation for tickets, login, and administration.
 
 ## Prerequisites
 
@@ -35,6 +35,18 @@ The equivalent Angular CLI command is:
 ```bash
 npx ng serve
 ```
+
+## Routes
+
+| URL | Page |
+| --- | --- |
+| `/` | Redirects to `/tickets` |
+| `/tickets` | Ticket list |
+| `/tickets/:id` | Ticket details |
+| `/login` | Login |
+| `/admin` | Administration |
+
+These routes display placeholder pages. Select **Open ticket** on the Tickets page to open `/tickets/1`. The administration area loads when `/admin` is opened.
 
 ## Build
 
