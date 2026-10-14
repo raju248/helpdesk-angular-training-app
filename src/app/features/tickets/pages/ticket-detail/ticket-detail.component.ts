@@ -1,8 +1,10 @@
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule, NgForm } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, finalize, forkJoin } from 'rxjs';
 
+import { AuthService } from '../../../../core/auth/auth.service';
 import { User } from '../../../../core/auth/user.model';
 import { ApiError } from '../../../../core/interceptors/api-error';
 import { CommentComponent } from '../../../../shared/components/comment/comment.component';
@@ -17,15 +19,18 @@ import { TicketService } from '../../services/ticket.service';
 @Component({
   standalone: true,
   selector: 'app-ticket-detail',
-  imports: [DatePipe, NgFor, NgIf, RouterLink, CommentComponent, TicketStatusBadgeComponent, PriorityHighlightDirective, TimeAgoPipe],
+  imports: [DatePipe, FormsModule, NgFor, NgIf, RouterLink, CommentComponent, TicketStatusBadgeComponent, PriorityHighlightDirective, TimeAgoPipe],
   templateUrl: './ticket-detail.component.html',
 })
 export class TicketDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
   private readonly ticketService = inject(TicketService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private routeSubscription?: Subscription;
   private ticketSubscription?: Subscription;
+  private commentSubscription?: Subscription;
   private ticketId: number | null = null;
   private users: User[] = [];
   private categories: Category[] = [];
@@ -35,6 +40,10 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
   protected loading = true;
   protected notFound = false;
   protected errorMessage = '';
+  protected readonly commentPattern = /\S/;
+  protected commentBody = '';
+  protected savingComment = false;
+  protected commentError = '';
 
   ngOnInit(): void {
     this.routeSubscription = this.route.paramMap.subscribe((params) => {
@@ -47,16 +56,20 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.routeSubscription?.unsubscribe();
     this.ticketSubscription?.unsubscribe();
+    this.commentSubscription?.unsubscribe();
   }
 
   protected loadTicket(): void {
     this.ticketSubscription?.unsubscribe();
+    this.commentSubscription?.unsubscribe();
     this.ticket = null;
     this.comments = [];
     this.users = [];
     this.categories = [];
     this.errorMessage = '';
     this.notFound = false;
+    this.commentBody = '';
+    this.commentError = '';
 
     if (this.ticketId === null) {
       this.loading = false;
@@ -96,6 +109,50 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
             : error instanceof ApiError
               ? error.message
               : 'Ticket details could not be loaded. Please try again.';
+        },
+      });
+  }
+
+  protected addComment(form: NgForm): void {
+    if (!this.ticket || this.loading || this.savingComment) {
+      return;
+    }
+
+    this.commentError = '';
+    form.form.markAllAsTouched();
+    const body = this.commentBody.trim();
+
+    if (form.invalid || !body) {
+      return;
+    }
+
+    const user = this.authService.currentUser;
+    if (!user) {
+      void this.router.navigate(['/login']);
+      return;
+    }
+
+    this.savingComment = true;
+    this.commentSubscription = this.ticketService.addComment({
+      ticketId: this.ticket.id,
+      userId: user.id,
+      body,
+      createdAt: new Date().toISOString(),
+    })
+      .pipe(finalize(() => {
+        this.savingComment = false;
+        this.changeDetectorRef.markForCheck();
+      }))
+      .subscribe({
+        next: (comment) => {
+          this.comments = [...this.comments, comment];
+          this.commentBody = '';
+          form.resetForm({ body: '' });
+        },
+        error: (error: unknown) => {
+          this.commentError = error instanceof ApiError
+            ? error.message
+            : 'The comment could not be added. Please try again.';
         },
       });
   }

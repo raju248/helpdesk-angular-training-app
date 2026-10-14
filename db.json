@@ -105,6 +105,13 @@
       "userId": 2,
       "body": "We are investigating the email delivery delay.",
       "createdAt": "2026-10-14T17:00:00.000Z"
+    },
+    {
+      "ticketId": 1,
+      "userId": 2,
+      "body": "this is a comment added using the form",
+      "createdAt": "2026-10-14T22:21:22.470Z",
+      "id": 4
     }
   ],
   "categories": [

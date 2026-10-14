@@ -5,3 +5,5 @@ export interface Comment {
   body: string;
   createdAt: string;
 }
+
+export type CreateCommentRequest = Omit<Comment, 'id'>;

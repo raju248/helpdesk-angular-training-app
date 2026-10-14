@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { DemoUser } from '../../../core/auth/user.model';
 import { Category } from '../../../shared/models/category.model';
-import { Comment } from '../../../shared/models/comment.model';
+import { Comment, CreateCommentRequest } from '../../../shared/models/comment.model';
 import { CreateTicketRequest, Ticket, TicketFilters, UpdateTicketRequest } from '../../../shared/models/ticket.model';
 
 @Injectable({ providedIn: 'root' })
@@ -48,6 +48,10 @@ export class TicketService {
   getComments(ticketId: number): Observable<Comment[]> {
     const params = new HttpParams().set('ticketId', ticketId);
     return this.http.get<Comment[]>(`${environment.apiUrl}/comments`, { params });
+  }
+
+  addComment(comment: CreateCommentRequest): Observable<Comment> {
+    return this.http.post<Comment>(`${environment.apiUrl}/comments`, comment);
   }
 
   getUsers(): Observable<DemoUser[]> {
