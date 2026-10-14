@@ -1,5 +1,10 @@
 import { TicketPriority, TicketStatus } from './ticket.types';
 
+export interface TicketFilters {
+  status?: TicketStatus;
+  priority?: TicketPriority;
+}
+
 export interface Ticket {
   id: number;
   title: string;
