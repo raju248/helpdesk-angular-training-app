@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+import { NgFor } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -15,17 +15,15 @@ import {
 } from 'rxjs';
 
 import { ApiError } from '../../../../core/interceptors/api-error';
-import { TicketStatusBadgeComponent } from '../../../../shared/components/ticket-status-badge/ticket-status-badge.component';
-import { PriorityHighlightDirective } from '../../../../shared/directives/priority-highlight.directive';
 import { Ticket, TicketFilters } from '../../../../shared/models/ticket.model';
 import { TicketPriority, TicketStatus } from '../../../../shared/models/ticket.types';
-import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
+import { TicketListViewComponent } from '../../components/ticket-list-view/ticket-list-view.component';
 import { TicketService } from '../../services/ticket.service';
 
 @Component({
   standalone: true,
   selector: 'app-ticket-list',
-  imports: [FormsModule, NgFor, NgIf, RouterLink, TicketStatusBadgeComponent, PriorityHighlightDirective, TimeAgoPipe],
+  imports: [FormsModule, NgFor, RouterLink, TicketListViewComponent],
   templateUrl: './ticket-list.component.html',
 })
 export class TicketListComponent implements OnInit, OnDestroy {
@@ -158,5 +156,9 @@ export class TicketListComponent implements OnInit, OnDestroy {
       priority: this.priorityFilter || undefined,
       search: this.searchQuery || undefined,
     });
+  }
+
+  protected openTicket(id: number): void {
+    void this.router.navigate(['/tickets', id], { queryParamsHandling: 'preserve' });
   }
 }

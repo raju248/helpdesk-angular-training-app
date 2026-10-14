@@ -25,4 +25,4 @@ export type CreateTicketRequest = Omit<Ticket, 'id'>;
 export type UpdateTicketRequest = Pick<
   Ticket,
   'title' | 'description' | 'priority' | 'categoryId' | 'links' | 'updatedAt'
->;
+> & Partial<Pick<Ticket, 'status' | 'assigneeId'>>;

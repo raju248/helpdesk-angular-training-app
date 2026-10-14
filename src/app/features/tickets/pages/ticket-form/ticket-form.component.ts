@@ -5,10 +5,11 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, Subscription, finalize, forkJoin, map } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
+import { User } from '../../../../core/auth/user.model';
 import { ApiError } from '../../../../core/interceptors/api-error';
 import { Category } from '../../../../shared/models/category.model';
 import { Ticket, UpdateTicketRequest } from '../../../../shared/models/ticket.model';
-import { TicketPriority } from '../../../../shared/models/ticket.types';
+import { TicketPriority, TicketStatus } from '../../../../shared/models/ticket.types';
 import { TicketService } from '../../services/ticket.service';
 import { httpUrlValidator } from '../../validators/http-url.validator';
 
@@ -35,15 +36,24 @@ export class TicketFormComponent implements OnInit, OnDestroy {
     priority: this.formBuilder.nonNullable.control<TicketPriority>('medium', Validators.required),
     categoryId: this.formBuilder.control<number | null>(null, Validators.required),
     links: this.formBuilder.array<FormControl<string>>([]),
+    status: this.formBuilder.nonNullable.control<TicketStatus>('open', Validators.required),
+    assigneeId: this.formBuilder.control<number | null>(null),
   });
   protected readonly priorityOptions: readonly { value: TicketPriority; label: string }[] = [
     { value: 'low', label: 'Low' },
     { value: 'medium', label: 'Medium' },
     { value: 'high', label: 'High' },
   ];
+  protected readonly statusOptions: readonly { value: TicketStatus; label: string }[] = [
+    { value: 'open', label: 'Open' },
+    { value: 'in-progress', label: 'In progress' },
+    { value: 'resolved', label: 'Resolved' },
+    { value: 'closed', label: 'Closed' },
+  ];
   protected ticketId: number | null = null;
   protected editMode = false;
   protected categories: Category[] = [];
+  protected agents: User[] = [];
   protected loading = true;
   protected saving = false;
   protected notFound = false;
@@ -52,6 +62,10 @@ export class TicketFormComponent implements OnInit, OnDestroy {
 
   protected get links(): FormArray<FormControl<string>> {
     return this.form.controls.links;
+  }
+
+  protected get isAgent(): boolean {
+    return this.authService.currentUser?.role === 'agent';
   }
 
   ngOnInit(): void {
@@ -74,11 +88,12 @@ export class TicketFormComponent implements OnInit, OnDestroy {
     this.loadSubscription?.unsubscribe();
     this.saveSubscription?.unsubscribe();
     this.categories = [];
+    this.agents = [];
     this.loadError = '';
     this.saveError = '';
     this.notFound = false;
     this.links.clear();
-    this.form.reset({ title: '', description: '', priority: 'medium', categoryId: null });
+    this.form.reset({ title: '', description: '', priority: 'medium', categoryId: null, status: 'open', assigneeId: null });
 
     if (this.editMode && this.ticketId === null) {
       this.loading = false;
@@ -97,14 +112,21 @@ export class TicketFormComponent implements OnInit, OnDestroy {
         })
       : this.ticketService.getCategories().pipe(map((categories) => ({ categories, ticket: null })));
 
-    this.loadSubscription = request
+    const formData = this.isAgent
+      ? forkJoin({ data: request, users: this.ticketService.getUsers() }).pipe(
+          map(({ data, users }) => ({ ...data, agents: users.filter((user) => user.role === 'agent') })),
+        )
+      : request.pipe(map((data) => ({ ...data, agents: [] })));
+
+    this.loadSubscription = formData
       .pipe(finalize(() => {
         this.loading = false;
         this.changeDetectorRef.markForCheck();
       }))
       .subscribe({
-        next: ({ categories, ticket }) => {
+        next: ({ categories, ticket, agents }) => {
           this.categories = categories;
+          this.agents = agents;
 
           if (ticket) {
             this.form.patchValue({
@@ -112,6 +134,8 @@ export class TicketFormComponent implements OnInit, OnDestroy {
               description: ticket.description,
               priority: ticket.priority,
               categoryId: categories.some((category) => category.id === ticket.categoryId) ? ticket.categoryId : null,
+              status: ticket.status,
+              assigneeId: ticket.assigneeId,
             });
             for (const link of ticket.links) {
               this.addLink(link);
@@ -168,6 +192,11 @@ export class TicketFormComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.isAgent && value.assigneeId !== null && !this.agents.some((agent) => agent.id === value.assigneeId)) {
+      this.saveError = 'Choose an agent or leave the ticket unassigned.';
+      return;
+    }
+
     const changes: UpdateTicketRequest = {
       title: value.title.trim(),
       description: value.description.trim(),
@@ -176,13 +205,17 @@ export class TicketFormComponent implements OnInit, OnDestroy {
       links: value.links.map((link) => link.trim()),
       updatedAt: new Date().toISOString(),
     };
+    if (this.isAgent) {
+      changes.status = value.status;
+      changes.assigneeId = value.assigneeId;
+    }
     const request = this.editMode && this.ticketId !== null
       ? this.ticketService.updateTicket(this.ticketId, changes)
       : this.ticketService.createTicket({
           ...changes,
-          status: 'open',
+          status: this.isAgent ? value.status : 'open',
           customerId: user.id,
-          assigneeId: null,
+          assigneeId: this.isAgent ? value.assigneeId : null,
           createdAt: changes.updatedAt,
         });
 
