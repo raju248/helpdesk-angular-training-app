@@ -39,6 +39,12 @@ Open [http://localhost:4200](http://localhost:4200). The development server watc
 
 ## Testing
 
+Run the unit tests (no API server needed):
+
+```bash
+npm test
+```
+
 Install the Playwright browser once, then run the tests:
 
 ```bash
@@ -56,7 +62,7 @@ npm run test:e2e:headed -- e2e/create-ticket.spec.ts
 
 Add `--project=chromium-en` for English only. Other test files are `e2e/comment.spec.ts` and `e2e/agent-status.spec.ts`.
 
-For an optional delay between browser actions in termainal (milliseconds):
+For an optional delay between browser actions in PowerShell (milliseconds):
 
 ```bash
 $env:PW_SLOW_MO = "1000"
@@ -64,3 +70,11 @@ npm run test:e2e:headed
 ```
 
 Set `PW_SLOW_MO` to `0` to remove the delay. Tests start Angular automatically and use mocked API data.
+
+## Production build
+
+```bash
+npm run build
+```
+
+Production is the default configuration. Output: `dist/helpdesk-ticket-manager/browser`.
