@@ -41,6 +41,7 @@
         <div *ngIf="currentUser as user" class="flex flex-wrap items-center gap-3 text-sm">
           <p class="text-slate-600">{{ user.name }} <span class="text-slate-500">({{ ('roles.' + user.role) | translate }})</span></p>
           <button
+            data-testid="logout"
             type="button"
             (click)="logout()"
             class="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -52,6 +53,7 @@
           <label for="language-select" class="font-medium text-slate-600">{{ 'app.language' | translate }}</label>
           <select
             id="language-select"
+            data-testid="language-select"
             name="language"
             [(ngModel)]="language"
             (ngModelChange)="switchLanguage($event)"

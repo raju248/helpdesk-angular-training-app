@@ -66,6 +66,19 @@
       "assigneeId": null,
       "createdAt": "2026-10-14T22:12:32.310Z",
       "id": 5
+    },
+    {
+      "title": "test s 23",
+      "description": "ds te d",
+      "priority": "medium",
+      "categoryId": 1,
+      "links": [],
+      "updatedAt": "2026-10-15T06:27:18.540Z",
+      "status": "resolved",
+      "assigneeId": 2,
+      "customerId": 2,
+      "createdAt": "2026-10-15T06:27:18.540Z",
+      "id": 6
     }
   ],
   "users": [

@@ -40,6 +40,7 @@
   <form
     *ngIf="!loading && !loadError && categories.length > 0"
     [formGroup]="form"
+    data-testid="ticket-form"
     (ngSubmit)="save()"
     class="mt-6 space-y-6"
     novalidate
@@ -48,6 +49,7 @@
       <label for="ticket-title" class="block text-sm font-medium">{{ 'ticketForm.title' | translate }}</label>
       <input
         id="ticket-title"
+        data-testid="ticket-title"
         type="text"
         formControlName="title"
         required
@@ -57,6 +59,7 @@
       />
       <p
         id="ticket-title-error"
+        data-testid="ticket-title-error"
         *ngIf="form.controls.title.invalid && (form.controls.title.dirty || form.controls.title.touched)"
         class="mt-2 text-sm text-red-700"
       >
@@ -68,6 +71,7 @@
       <label for="ticket-description" class="block text-sm font-medium">{{ 'ticketForm.description' | translate }}</label>
       <textarea
         id="ticket-description"
+        data-testid="ticket-description"
         formControlName="description"
         rows="5"
         class="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
@@ -79,6 +83,7 @@
         <label for="ticket-priority" class="block text-sm font-medium">{{ 'ticketForm.priority' | translate }}</label>
         <select
           id="ticket-priority"
+          data-testid="ticket-priority"
           formControlName="priority"
           required
           class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
@@ -90,6 +95,7 @@
         <label for="ticket-category" class="block text-sm font-medium">{{ 'ticketForm.category' | translate }}</label>
         <select
           id="ticket-category"
+          data-testid="ticket-category"
           formControlName="categoryId"
           required
           aria-describedby="ticket-category-error"
@@ -101,6 +107,7 @@
         </select>
         <p
           id="ticket-category-error"
+          data-testid="ticket-category-error"
           *ngIf="form.controls.categoryId.invalid && (form.controls.categoryId.dirty || form.controls.categoryId.touched)"
           class="mt-2 text-sm text-red-700"
         >
@@ -114,6 +121,7 @@
         <label for="ticket-status" class="block text-sm font-medium">{{ 'ticketForm.status' | translate }}</label>
         <select
           id="ticket-status"
+          data-testid="ticket-status"
           formControlName="status"
           required
           class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
@@ -125,6 +133,7 @@
         <label for="ticket-assignee" class="block text-sm font-medium">{{ 'common.assignee' | translate }}</label>
         <select
           id="ticket-assignee"
+          data-testid="ticket-assignee"
           formControlName="assigneeId"
           class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
         >
@@ -143,6 +152,7 @@
         <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-start">
           <input
             [id]="'ticket-link-' + i"
+            data-testid="ticket-link"
             type="url"
             [formControlName]="i"
             required
@@ -153,6 +163,7 @@
           <button
             type="button"
             (click)="removeLink(i)"
+            data-testid="remove-link"
             [disabled]="saving"
             [attr.aria-label]="'ticketForm.removeLink' | translate: { index: i + 1 }"
             class="self-start rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
@@ -162,6 +173,7 @@
         </div>
         <p
           [id]="'ticket-link-error-' + i"
+          data-testid="ticket-link-error"
           *ngIf="link.invalid && (link.dirty || link.touched)"
           class="mt-2 text-sm text-red-700"
         >
@@ -171,6 +183,7 @@
       <button
         type="button"
         (click)="addLink()"
+        data-testid="add-link"
         [disabled]="saving"
         class="mt-4 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
       >
@@ -183,6 +196,7 @@
 
     <div class="flex flex-wrap gap-3 border-t border-slate-200 pt-5">
       <button
+        data-testid="ticket-save"
         type="submit"
         [disabled]="saving"
         class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"

@@ -36,3 +36,31 @@ npm start
 ```
 
 Open [http://localhost:4200](http://localhost:4200). The development server watches source files and reloads the page when they change. Stop it with `Ctrl+C`.
+
+## Testing
+
+Install the Playwright browser once, then run the tests:
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+To watch the browser, run `npm run test:e2e:headed`.
+
+Run a single test file in terminal:
+
+```bash
+npm run test:e2e:headed -- e2e/create-ticket.spec.ts
+```
+
+Add `--project=chromium-en` for English only. Other test files are `e2e/comment.spec.ts` and `e2e/agent-status.spec.ts`.
+
+For an optional delay between browser actions in termainal (milliseconds):
+
+```bash
+$env:PW_SLOW_MO = "1000"
+npm run test:e2e:headed
+```
+
+Set `PW_SLOW_MO` to `0` to remove the delay. Tests start Angular automatically and use mocked API data.

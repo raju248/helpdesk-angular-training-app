@@ -6,6 +6,8 @@
     "start": "ng serve",
     "api": "json-server --watch db.json --host 127.0.0.1 --port 3000",
     "build": "ng build",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed --workers=1",
     "watch": "ng build --watch --configuration development"
   },
   "private": true,
@@ -29,7 +31,9 @@
     "@angular/build": "^22.2.2",
     "@angular/cli": "^22.2.2",
     "@angular/compiler-cli": "^22.2.0",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.20.5",
     "json-server": "0.17.4",
     "postcss": "^8.5.30",
     "tailwindcss": "^4.3.3",

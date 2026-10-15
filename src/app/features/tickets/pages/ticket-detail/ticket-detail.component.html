@@ -21,9 +21,10 @@
     </button>
   </div>
 
-  <div *ngIf="ticket as currentTicket" class="mt-6">
+  <div *ngIf="ticket as currentTicket" data-testid="ticket-detail" [attr.data-ticket-id]="currentTicket.id" class="mt-6">
     <a
       [routerLink]="['/tickets', currentTicket.id, 'edit']"
+      data-testid="edit-ticket"
       queryParamsHandling="preserve"
       class="mb-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
     >
@@ -33,7 +34,7 @@
       <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p class="text-sm text-slate-500">{{ 'detail.ticketNumber' | translate: { id: currentTicket.id } }}</p>
-          <h1 class="mt-2 break-words text-3xl font-bold tracking-tight">{{ currentTicket.title }}</h1>
+          <h1 data-testid="ticket-detail-title" class="mt-2 break-words text-3xl font-bold tracking-tight">{{ currentTicket.title }}</h1>
         </div>
         <app-ticket-status-badge [status]="currentTicket.status" />
       </div>
@@ -55,7 +56,7 @@
         </div>
         <div>
           <dt class="text-slate-500">{{ 'common.assignee' | translate }}</dt>
-          <dd class="mt-1 font-medium">{{ currentTicket.assigneeId === null ? ('common.unassigned' | translate) : (userName(currentTicket.assigneeId) || ('common.unknownUser' | translate)) }}</dd>
+          <dd data-testid="ticket-detail-assignee" class="mt-1 font-medium">{{ currentTicket.assigneeId === null ? ('common.unassigned' | translate) : (userName(currentTicket.assigneeId) || ('common.unknownUser' | translate)) }}</dd>
         </div>
         <div>
           <dt class="text-slate-500">{{ 'common.created' | translate }}</dt>
@@ -78,6 +79,7 @@
           <li *ngFor="let link of currentTicket.links">
             <a
               [href]="link"
+              data-testid="ticket-detail-link"
               target="_blank"
               rel="noopener noreferrer"
               class="break-all rounded text-indigo-700 underline hover:text-indigo-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -94,7 +96,7 @@
       <p *ngIf="comments.length === 0" class="mt-3 text-slate-500">{{ 'comments.empty' | translate }}</p>
       <ul *ngIf="comments.length > 0" class="mt-4 space-y-4">
         <li *ngFor="let comment of comments">
-          <app-comment [comment]="comment" [userName]="userName(comment.userId)" />
+          <app-comment [attr.data-testid]="'comment-' + comment.id" [comment]="comment" [userName]="userName(comment.userId)" />
         </li>
       </ul>
 
@@ -103,6 +105,7 @@
           <label for="comment-body" class="block text-sm font-medium">{{ 'comments.label' | translate }}</label>
           <textarea
             id="comment-body"
+            data-testid="comment-input"
             name="body"
             rows="4"
             required
@@ -117,6 +120,7 @@
           ></textarea>
           <p
             id="comment-body-error"
+            data-testid="comment-input-error"
             *ngIf="commentInput.invalid && (commentInput.dirty || commentInput.touched || commentForm.submitted)"
             class="mt-2 text-sm text-red-700"
           >
@@ -124,9 +128,10 @@
           </p>
         </div>
 
-        <p *ngIf="commentError" role="alert" class="rounded-lg bg-red-50 p-4 text-red-700">{{ commentError | translate }}</p>
+        <p *ngIf="commentError" data-testid="comment-save-error" [attr.data-error-key]="commentError" role="alert" class="rounded-lg bg-red-50 p-4 text-red-700">{{ commentError | translate }}</p>
         <p *ngIf="savingComment" role="status" class="text-sm text-slate-600">{{ 'comments.adding' | translate }}</p>
         <button
+          data-testid="comment-submit"
           type="submit"
           [disabled]="savingComment"
           class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
