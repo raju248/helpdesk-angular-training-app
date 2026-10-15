@@ -1,3 +1,4 @@
+import { TranslatePipe } from '@ngx-translate/core';
 import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,7 +17,7 @@ import { httpUrlValidator } from '../../validators/http-url.validator';
 @Component({
   standalone: true,
   selector: 'app-ticket-form',
-  imports: [NgFor, NgIf, ReactiveFormsModule, RouterLink],
+  imports: [TranslatePipe, NgFor, NgIf, ReactiveFormsModule, RouterLink],
   templateUrl: './ticket-form.component.html',
 })
 export class TicketFormComponent implements OnInit, OnDestroy {
@@ -40,15 +41,15 @@ export class TicketFormComponent implements OnInit, OnDestroy {
     assigneeId: this.formBuilder.control<number | null>(null),
   });
   protected readonly priorityOptions: readonly { value: TicketPriority; label: string }[] = [
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' },
+    { value: 'low', label: 'priorities.low' },
+    { value: 'medium', label: 'priorities.medium' },
+    { value: 'high', label: 'priorities.high' },
   ];
   protected readonly statusOptions: readonly { value: TicketStatus; label: string }[] = [
-    { value: 'open', label: 'Open' },
-    { value: 'in-progress', label: 'In progress' },
-    { value: 'resolved', label: 'Resolved' },
-    { value: 'closed', label: 'Closed' },
+    { value: 'open', label: 'statuses.open' },
+    { value: 'in-progress', label: 'statuses.in-progress' },
+    { value: 'resolved', label: 'statuses.resolved' },
+    { value: 'closed', label: 'statuses.closed' },
   ];
   protected ticketId: number | null = null;
   protected editMode = false;
@@ -98,7 +99,7 @@ export class TicketFormComponent implements OnInit, OnDestroy {
     if (this.editMode && this.ticketId === null) {
       this.loading = false;
       this.notFound = true;
-      this.loadError = 'This ticket could not be found.';
+      this.loadError = 'errors.ticketNotFound';
       this.changeDetectorRef.markForCheck();
       return;
     }
@@ -147,10 +148,10 @@ export class TicketFormComponent implements OnInit, OnDestroy {
             && error.status === 404
             && !!error.url?.endsWith(`/tickets/${this.ticketId}`);
           this.loadError = this.notFound
-            ? 'This ticket could not be found.'
+            ? 'errors.ticketNotFound'
             : error instanceof ApiError
               ? error.message
-              : 'The ticket form could not be loaded. Please try again.';
+              : 'errors.ticketFormLoad';
         },
       });
   }
@@ -193,7 +194,7 @@ export class TicketFormComponent implements OnInit, OnDestroy {
     }
 
     if (this.isAgent && value.assigneeId !== null && !this.agents.some((agent) => agent.id === value.assigneeId)) {
-      this.saveError = 'Choose an agent or leave the ticket unassigned.';
+      this.saveError = 'validation.assignee';
       return;
     }
 
@@ -234,7 +235,7 @@ export class TicketFormComponent implements OnInit, OnDestroy {
         error: (error: unknown) => {
           this.saveError = error instanceof ApiError
             ? error.message
-            : 'The ticket could not be saved. Please try again.';
+            : 'errors.ticketSave';
         },
       });
   }

@@ -44,13 +44,13 @@
       "title": "Request a copy of my receipt",
       "description": "The receipt has been sent and the request is complete.",
       "priority": "medium",
-      "status": "closed",
+      "status": "in-progress",
       "categoryId": 3,
       "customerId": 1,
       "assigneeId": 2,
       "links": [],
       "createdAt": "2026-10-06T09:00:00.000Z",
-      "updatedAt": "2026-10-07T15:00:00.000Z"
+      "updatedAt": "2026-10-14T22:55:41.742Z"
     },
     {
       "title": "create new ticket",

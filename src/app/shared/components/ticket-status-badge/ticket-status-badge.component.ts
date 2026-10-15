@@ -1,21 +1,17 @@
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, Input } from '@angular/core';
 
 import { TicketStatus } from '../../models/ticket.types';
 
 @Component({
   standalone: true,
+  imports: [TranslatePipe],
   selector: 'app-ticket-status-badge',
   templateUrl: './ticket-status-badge.component.html',
 })
 export class TicketStatusBadgeComponent {
   @Input() status: TicketStatus = 'open';
 
-  protected readonly statusLabels: Record<TicketStatus, string> = {
-    open: 'Open',
-    'in-progress': 'In progress',
-    resolved: 'Resolved',
-    closed: 'Closed',
-  };
 
   protected readonly statusClasses: Record<TicketStatus, string> = {
     open: 'bg-sky-50 text-sky-700 ring-sky-600/20',

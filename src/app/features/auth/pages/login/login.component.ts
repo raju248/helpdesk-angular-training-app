@@ -1,3 +1,4 @@
+import { TranslatePipe } from '@ngx-translate/core';
 import { NgFor, NgIf } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -9,7 +10,7 @@ import { DemoUser } from '../../../../core/auth/user.model';
 
 @Component({
   standalone: true,
-  imports: [FormsModule, NgIf, NgFor],
+  imports: [TranslatePipe, FormsModule, NgIf, NgFor],
   selector: 'app-login',
   templateUrl: './login.component.html',
 })
@@ -22,7 +23,7 @@ export class LoginComponent {
   protected email = '';
   protected password = '';
   protected errorMessage = this.route.snapshot.queryParamMap.get('reason') === 'session-expired'
-    ? 'Your session has expired. Please sign in again.'
+    ? 'errors.sessionExpired'
     : '';
 
   protected login(form: NgForm): void {
@@ -35,12 +36,12 @@ export class LoginComponent {
     const result = this.authService.login(this.email, this.password);
 
     if (result === 'invalid-credentials') {
-      this.errorMessage = 'Email or password is incorrect. Use one of the demo accounts below.';
+      this.errorMessage = 'errors.invalidCredentials';
       return;
     }
 
     if (result === 'storage-unavailable') {
-      this.errorMessage = 'Your browser could not save the session. Enable browser storage and try again.';
+      this.errorMessage = 'errors.storage';
       return;
     }
 

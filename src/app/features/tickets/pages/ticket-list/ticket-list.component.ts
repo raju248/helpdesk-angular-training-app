@@ -1,3 +1,4 @@
+import { TranslatePipe } from '@ngx-translate/core';
 import { NgFor } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +24,7 @@ import { TicketService } from '../../services/ticket.service';
 @Component({
   standalone: true,
   selector: 'app-ticket-list',
-  imports: [FormsModule, NgFor, RouterLink, TicketListViewComponent],
+  imports: [TranslatePipe, FormsModule, NgFor, RouterLink, TicketListViewComponent],
   templateUrl: './ticket-list.component.html',
 })
 export class TicketListComponent implements OnInit, OnDestroy {
@@ -39,15 +40,15 @@ export class TicketListComponent implements OnInit, OnDestroy {
   private searchQuery = '';
 
   protected readonly statusOptions: readonly { value: TicketStatus; label: string }[] = [
-    { value: 'open', label: 'Open' },
-    { value: 'in-progress', label: 'In progress' },
-    { value: 'resolved', label: 'Resolved' },
-    { value: 'closed', label: 'Closed' },
+    { value: 'open', label: 'statuses.open' },
+    { value: 'in-progress', label: 'statuses.in-progress' },
+    { value: 'resolved', label: 'statuses.resolved' },
+    { value: 'closed', label: 'statuses.closed' },
   ];
   protected readonly priorityOptions: readonly { value: TicketPriority; label: string }[] = [
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' },
+    { value: 'low', label: 'priorities.low' },
+    { value: 'medium', label: 'priorities.medium' },
+    { value: 'high', label: 'priorities.high' },
   ];
   protected statusFilter: TicketStatus | '' = '';
   protected priorityFilter: TicketPriority | '' = '';
@@ -69,7 +70,7 @@ export class TicketListComponent implements OnInit, OnDestroy {
             catchError((error: unknown) => {
               this.errorMessage = error instanceof ApiError
                 ? error.message
-                : 'Tickets could not be loaded. Please try again.';
+                : 'errors.ticketListLoad';
               // Complete this failed request while keeping future searches active.
               return new Observable<Ticket[]>((subscriber) => subscriber.complete());
             }),

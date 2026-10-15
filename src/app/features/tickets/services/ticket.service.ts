@@ -50,7 +50,7 @@ export class TicketService {
         map((tickets) => {
           const ticket = tickets[0];
           if (!ticket) {
-            throw new ApiError('This ticket could not be found.', 404, `${this.ticketsUrl}/${id}`);
+            throw new ApiError('errors.ticketNotFound', 404, `${this.ticketsUrl}/${id}`);
           }
           return ticket;
         }),
@@ -76,7 +76,7 @@ export class TicketService {
       && (changes.status !== undefined || changes.assigneeId !== undefined)
     ) {
       return new Observable<Ticket>((subscriber) => {
-        subscriber.error(new ApiError('Only agents can change ticket status or assignee.', 403, `${this.ticketsUrl}/${id}`));
+        subscriber.error(new ApiError('errors.agentOnly', 403, `${this.ticketsUrl}/${id}`));
       });
     }
 

@@ -4,36 +4,36 @@
     queryParamsHandling="preserve"
     class="inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
   >
-    {{ editMode && ticketId ? 'Back to ticket' : 'Back to tickets' }}
+    {{ (editMode && ticketId ? 'common.backToTicket' : 'common.backToTickets') | translate }}
   </a>
 
-  <h1 class="mt-6 text-3xl font-bold tracking-tight">{{ editMode ? 'Edit ticket' : 'Create ticket' }}</h1>
+  <h1 class="mt-6 text-3xl font-bold tracking-tight">{{ (editMode ? 'common.editTicket' : 'common.createTicket') | translate }}</h1>
   <p class="mt-3 leading-7 text-slate-600">
-    {{ editMode ? 'Update the details of your support request.' : 'Tell us about your support request.' }}
+    {{ (editMode ? 'ticketForm.editDescription' : 'ticketForm.createDescription') | translate }}
   </p>
 
-  <p *ngIf="loading" role="status" class="mt-6 text-slate-600">Loading ticket form...</p>
+  <p *ngIf="loading" role="status" class="mt-6 text-slate-600">{{ 'ticketForm.loading' | translate }}</p>
 
   <div *ngIf="loadError" role="alert" class="mt-6 rounded-lg bg-red-50 p-4 text-red-700">
-    <p>{{ loadError }}</p>
+    <p>{{ loadError | translate }}</p>
     <button
       *ngIf="!notFound"
       type="button"
       (click)="loadForm()"
       class="mt-3 rounded-lg border border-red-300 px-3 py-2 text-sm font-medium hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
     >
-      Try again
+      {{ 'common.retry' | translate }}
     </button>
   </div>
 
   <div *ngIf="!loading && !loadError && categories.length === 0" class="mt-6 rounded-lg bg-slate-50 p-4 text-slate-600">
-    <p>No categories are available. A category is needed to save a ticket.</p>
+    <p>{{ 'ticketForm.noCategories' | translate }}</p>
     <button
       type="button"
       (click)="loadForm()"
       class="mt-3 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
     >
-      Try again
+      {{ 'common.retry' | translate }}
     </button>
   </div>
 
@@ -45,7 +45,7 @@
     novalidate
   >
     <div>
-      <label for="ticket-title" class="block text-sm font-medium">Title (required)</label>
+      <label for="ticket-title" class="block text-sm font-medium">{{ 'ticketForm.title' | translate }}</label>
       <input
         id="ticket-title"
         type="text"
@@ -60,12 +60,12 @@
         *ngIf="form.controls.title.invalid && (form.controls.title.dirty || form.controls.title.touched)"
         class="mt-2 text-sm text-red-700"
       >
-        Enter a title.
+        {{ 'validation.title' | translate }}
       </p>
     </div>
 
     <div>
-      <label for="ticket-description" class="block text-sm font-medium">Description (optional)</label>
+      <label for="ticket-description" class="block text-sm font-medium">{{ 'ticketForm.description' | translate }}</label>
       <textarea
         id="ticket-description"
         formControlName="description"
@@ -76,18 +76,18 @@
 
     <div class="grid gap-6 sm:grid-cols-2">
       <div>
-        <label for="ticket-priority" class="block text-sm font-medium">Priority (required)</label>
+        <label for="ticket-priority" class="block text-sm font-medium">{{ 'ticketForm.priority' | translate }}</label>
         <select
           id="ticket-priority"
           formControlName="priority"
           required
           class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
         >
-          <option *ngFor="let option of priorityOptions" [value]="option.value">{{ option.label }}</option>
+          <option *ngFor="let option of priorityOptions" [value]="option.value">{{ option.label | translate }}</option>
         </select>
       </div>
       <div>
-        <label for="ticket-category" class="block text-sm font-medium">Category (required)</label>
+        <label for="ticket-category" class="block text-sm font-medium">{{ 'ticketForm.category' | translate }}</label>
         <select
           id="ticket-category"
           formControlName="categoryId"
@@ -96,7 +96,7 @@
           [attr.aria-invalid]="form.controls.categoryId.invalid && (form.controls.categoryId.dirty || form.controls.categoryId.touched)"
           class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
         >
-          <option [ngValue]="null">Choose a category</option>
+          <option [ngValue]="null">{{ 'validation.category' | translate }}</option>
           <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
         </select>
         <p
@@ -104,42 +104,42 @@
           *ngIf="form.controls.categoryId.invalid && (form.controls.categoryId.dirty || form.controls.categoryId.touched)"
           class="mt-2 text-sm text-red-700"
         >
-          Choose a category.
+          {{ 'validation.category' | translate }}
         </p>
       </div>
     </div>
 
     <div *ngIf="isAgent" class="grid gap-6 border-t border-slate-200 pt-5 sm:grid-cols-2">
       <div>
-        <label for="ticket-status" class="block text-sm font-medium">Status (required)</label>
+        <label for="ticket-status" class="block text-sm font-medium">{{ 'ticketForm.status' | translate }}</label>
         <select
           id="ticket-status"
           formControlName="status"
           required
           class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
         >
-          <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label | translate }}</option>
         </select>
       </div>
       <div>
-        <label for="ticket-assignee" class="block text-sm font-medium">Assignee</label>
+        <label for="ticket-assignee" class="block text-sm font-medium">{{ 'common.assignee' | translate }}</label>
         <select
           id="ticket-assignee"
           formControlName="assigneeId"
           class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
         >
-          <option [ngValue]="null">Unassigned</option>
+          <option [ngValue]="null">{{ 'common.unassigned' | translate }}</option>
           <option *ngFor="let agent of agents" [ngValue]="agent.id">{{ agent.name }}</option>
         </select>
       </div>
     </div>
 
     <fieldset formArrayName="links" class="border-t border-slate-200 pt-5">
-      <legend class="text-sm font-medium">Links (optional)</legend>
-      <p class="text-sm text-slate-500">Add any related HTTP or HTTPS links.</p>
-      <p *ngIf="links.length === 0" class="mt-3 text-sm text-slate-500">No links added.</p>
+      <legend class="text-sm font-medium">{{ 'ticketForm.links' | translate }}</legend>
+      <p class="text-sm text-slate-500">{{ 'ticketForm.linksHelp' | translate }}</p>
+      <p *ngIf="links.length === 0" class="mt-3 text-sm text-slate-500">{{ 'common.noLinks' | translate }}</p>
       <div *ngFor="let link of links.controls; let i = index" class="mt-4">
-        <label [for]="'ticket-link-' + i" class="block text-sm font-medium">Link {{ i + 1 }}</label>
+        <label [for]="'ticket-link-' + i" class="block text-sm font-medium">{{ 'ticketForm.linkLabel' | translate: { index: i + 1 } }}</label>
         <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-start">
           <input
             [id]="'ticket-link-' + i"
@@ -154,10 +154,10 @@
             type="button"
             (click)="removeLink(i)"
             [disabled]="saving"
-            [attr.aria-label]="'Remove link ' + (i + 1)"
+            [attr.aria-label]="'ticketForm.removeLink' | translate: { index: i + 1 }"
             class="self-start rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
           >
-            Remove
+            {{ 'common.remove' | translate }}
           </button>
         </div>
         <p
@@ -165,7 +165,7 @@
           *ngIf="link.invalid && (link.dirty || link.touched)"
           class="mt-2 text-sm text-red-700"
         >
-          Enter a valid HTTP or HTTPS link, or remove this row.
+          {{ 'validation.link' | translate }}
         </p>
       </div>
       <button
@@ -174,12 +174,12 @@
         [disabled]="saving"
         class="mt-4 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
       >
-        Add link
+        {{ 'ticketForm.addLink' | translate }}
       </button>
     </fieldset>
 
-    <p *ngIf="saveError" role="alert" class="rounded-lg bg-red-50 p-4 text-red-700">{{ saveError }}</p>
-    <p *ngIf="saving" role="status" class="text-sm text-slate-600">Saving ticket...</p>
+    <p *ngIf="saveError" role="alert" class="rounded-lg bg-red-50 p-4 text-red-700">{{ saveError | translate }}</p>
+    <p *ngIf="saving" role="status" class="text-sm text-slate-600">{{ 'ticketForm.saving' | translate }}</p>
 
     <div class="flex flex-wrap gap-3 border-t border-slate-200 pt-5">
       <button
@@ -187,14 +187,14 @@
         [disabled]="saving"
         class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
       >
-        {{ saving ? 'Saving...' : editMode ? 'Save changes' : 'Create ticket' }}
+        {{ (saving ? 'ticketForm.submitting' : editMode ? 'ticketForm.saveChanges' : 'common.createTicket') | translate }}
       </button>
       <a
         [routerLink]="editMode && ticketId ? ['/tickets', ticketId] : ['/tickets']"
         queryParamsHandling="preserve"
         class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
       >
-        Cancel
+        {{ 'common.cancel' | translate }}
       </a>
     </div>
   </form>

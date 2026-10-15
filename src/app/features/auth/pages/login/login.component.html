@@ -1,12 +1,12 @@
 <section class="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-  <h1 class="text-3xl font-bold tracking-tight">Login</h1>
+  <h1 class="text-3xl font-bold tracking-tight">{{ 'login.title' | translate }}</h1>
   <p class="mt-3 leading-7 text-slate-600">
-    Sign in to raise support tickets or help customers resolve them.
+    {{ 'login.description' | translate }}
   </p>
 
   <form #loginForm="ngForm" (ngSubmit)="login(loginForm)" class="mt-6 space-y-5" novalidate>
     <div>
-      <label for="email" class="block text-sm font-medium">Email</label>
+      <label for="email" class="block text-sm font-medium">{{ 'login.email' | translate }}</label>
       <input
         id="email"
         name="email"
@@ -26,12 +26,12 @@
         *ngIf="emailInput.invalid && (emailInput.touched || loginForm.submitted)"
         class="mt-2 text-sm text-red-700"
       >
-        Enter a valid email address.
+        {{ 'validation.email' | translate }}
       </p>
     </div>
 
     <div>
-      <label for="password" class="block text-sm font-medium">Password</label>
+      <label for="password" class="block text-sm font-medium">{{ 'login.password' | translate }}</label>
       <input
         id="password"
         name="password"
@@ -50,36 +50,36 @@
         *ngIf="passwordInput.invalid && (passwordInput.touched || loginForm.submitted)"
         class="mt-2 text-sm text-red-700"
       >
-        Enter your password.
+        {{ 'validation.password' | translate }}
       </p>
     </div>
 
     <p *ngIf="errorMessage" role="alert" class="rounded-lg bg-red-50 p-3 text-sm text-red-700">
-      {{ errorMessage }}
+      {{ errorMessage | translate }}
     </p>
 
     <button
       type="submit"
       class="w-full rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
     >
-      Sign in
+      {{ 'login.signIn' | translate }}
     </button>
   </form>
 
   <div class="mt-8 border-t border-slate-200 pt-6">
-    <h2 class="text-lg font-semibold">Demo accounts</h2>
-    <p class="mt-2 text-sm text-slate-600">Choose an account to fill the form, then select Sign in.</p>
+    <h2 class="text-lg font-semibold">{{ 'login.demoAccounts' | translate }}</h2>
+    <p class="mt-2 text-sm text-slate-600">{{ 'login.demoHelp' | translate }}</p>
     <ul class="mt-4 grid gap-3 sm:grid-cols-2">
       <li *ngFor="let user of demoUsers" class="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <h3 class="font-medium">{{ user.name }}</h3>
+        <h3 class="font-medium">{{ ('login.demo.' + user.role) | translate }}</h3>
         <p class="mt-2 break-all text-sm text-slate-600">{{ user.email }}</p>
-        <p class="mt-1 text-sm text-slate-600">Password: <code>{{ user.password }}</code></p>
+        <p class="mt-1 text-sm text-slate-600">{{ 'login.password' | translate }}: <code>{{ user.password }}</code></p>
         <button
           type="button"
           (click)="useDemoUser(user, loginForm)"
           class="mt-3 rounded text-sm font-medium text-indigo-700 hover:text-indigo-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
         >
-          Use {{ user.role }} account
+          {{ 'login.useAccount' | translate: { role: (('roles.' + user.role) | translate) } }}
         </button>
       </li>
     </ul>

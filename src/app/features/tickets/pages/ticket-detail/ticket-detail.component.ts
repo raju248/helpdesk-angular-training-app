@@ -1,4 +1,5 @@
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { AsyncPipe, DatePipe, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -19,10 +20,11 @@ import { TicketService } from '../../services/ticket.service';
 @Component({
   standalone: true,
   selector: 'app-ticket-detail',
-  imports: [DatePipe, FormsModule, NgFor, NgIf, RouterLink, CommentComponent, TicketStatusBadgeComponent, PriorityHighlightDirective, TimeAgoPipe],
+  imports: [AsyncPipe, TranslatePipe, DatePipe, FormsModule, NgFor, NgIf, RouterLink, CommentComponent, TicketStatusBadgeComponent, PriorityHighlightDirective, TimeAgoPipe],
   templateUrl: './ticket-detail.component.html',
 })
 export class TicketDetailComponent implements OnInit, OnDestroy {
+  protected readonly translate = inject(TranslateService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
@@ -74,7 +76,7 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
     if (this.ticketId === null) {
       this.loading = false;
       this.notFound = true;
-      this.errorMessage = 'This ticket could not be found.';
+      this.errorMessage = 'errors.ticketNotFound';
       this.changeDetectorRef.markForCheck();
       return;
     }
@@ -105,10 +107,10 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
             && error.status === 404
             && !!error.url?.endsWith(`/tickets/${this.ticketId}`);
           this.errorMessage = this.notFound
-            ? 'This ticket could not be found.'
+            ? 'errors.ticketNotFound'
             : error instanceof ApiError
               ? error.message
-              : 'Ticket details could not be loaded. Please try again.';
+              : 'errors.ticketDetailsLoad';
         },
       });
   }
@@ -152,20 +154,20 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
         error: (error: unknown) => {
           this.commentError = error instanceof ApiError
             ? error.message
-            : 'The comment could not be added. Please try again.';
+            : 'errors.commentSave';
         },
       });
   }
 
-  protected userName(id: number | null): string {
+  protected userName(id: number | null): string | null {
     if (id === null) {
-      return 'Unassigned';
+      return null;
     }
 
-    return this.users.find((user) => user.id === id)?.name ?? 'Unknown user';
+    return this.users.find((user) => user.id === id)?.name ?? null;
   }
 
-  protected categoryName(id: number): string {
-    return this.categories.find((category) => category.id === id)?.name ?? 'Unknown category';
+  protected categoryName(id: number): string | null {
+    return this.categories.find((category) => category.id === id)?.name ?? null;
   }
 }

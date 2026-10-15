@@ -6,6 +6,6 @@ export const adminRoutes: Routes = [
   {
     path: '',
     component: AdminComponent,
-    title: 'Admin | Helpdesk Ticket Manager',
+    data: { titleKey: 'pageTitles.admin' },
   },
 ];

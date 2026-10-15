@@ -1,18 +1,18 @@
-<p *ngIf="loading" role="status" class="mt-6 text-slate-600">Loading tickets...</p>
+<p *ngIf="loading" role="status" class="mt-6 text-slate-600">{{ 'tickets.loading' | translate }}</p>
 
 <div *ngIf="errorMessage" role="alert" class="mt-6 rounded-lg bg-red-50 p-4 text-red-700">
-  <p>{{ errorMessage }}</p>
+  <p>{{ errorMessage | translate }}</p>
   <button
     type="button"
     (click)="retry.emit()"
     class="mt-3 rounded-lg border border-red-300 px-3 py-2 text-sm font-medium hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
   >
-    Try again
+    {{ 'common.retry' | translate }}
   </button>
 </div>
 
 <p *ngIf="!loading && !errorMessage && tickets.length === 0" class="mt-6 text-slate-600">
-  {{ hasFilters ? 'No tickets match these filters.' : 'No tickets yet.' }}
+  {{ (hasFilters ? 'tickets.emptyFiltered' : 'tickets.empty') | translate }}
 </p>
 
 <ul *ngIf="!loading && !errorMessage && tickets.length > 0" class="mt-6 space-y-4">
@@ -28,15 +28,15 @@
 
       <div class="mt-4 flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap gap-x-4 gap-y-2 text-slate-600">
-          <p>Priority: <span class="font-medium capitalize">{{ ticket.priority }}</span></p>
-          <p>Updated <time [attr.datetime]="ticket.updatedAt">{{ ticket.updatedAt | timeAgo }}</time></p>
+          <p>{{ 'common.priority' | translate }}: <span class="font-medium capitalize">{{ ('priorities.' + ticket.priority) | translate }}</span></p>
+          <p>{{ 'common.updated' | translate }} <time [attr.datetime]="ticket.updatedAt">{{ ticket.updatedAt | timeAgo | async }}</time></p>
         </div>
         <button
           type="button"
           (click)="openTicket.emit(ticket.id)"
           class="self-start rounded-lg bg-indigo-600 px-3 py-2 font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
         >
-          Open ticket
+          {{ 'tickets.open' | translate }}
         </button>
       </div>
     </article>

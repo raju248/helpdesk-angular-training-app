@@ -38,20 +38,20 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
 function errorMessage(status: number): string {
   switch (status) {
     case 0:
-      return 'Unable to reach the server. Check your connection and try again.';
+      return 'errors.network';
     case 400:
-      return 'The request could not be completed. Check the details and try again.';
+      return 'errors.badRequest';
     case 401:
-      return 'Your session has expired. Please sign in again.';
+      return 'errors.sessionExpired';
     case 403:
-      return 'You do not have permission to perform this action.';
+      return 'errors.forbidden';
     case 404:
-      return 'The requested item could not be found.';
+      return 'errors.notFound';
     case 429:
-      return 'Too many requests. Please wait a moment and try again.';
+      return 'errors.rateLimit';
     default:
       return status >= 500
-        ? 'The server is temporarily unavailable. Please try again.'
-        : 'Something went wrong. Please try again.';
+        ? 'errors.server'
+        : 'errors.unexpected';
   }
 }
