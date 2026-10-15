@@ -7,138 +7,160 @@
     {{ 'common.backToTickets' | translate }}
   </a>
 
-  <p *ngIf="loading" role="status" class="mt-6 text-slate-600">{{ 'detail.loading' | translate }}</p>
+  @if (loading()) {
+    <p role="status" class="mt-6 text-slate-600">{{ 'detail.loading' | translate }}</p>
+  }
 
-  <div *ngIf="errorMessage" role="alert" class="mt-6 rounded-lg bg-red-50 p-4 text-red-700">
-    <p>{{ errorMessage | translate }}</p>
-    <button
-      *ngIf="!notFound"
-      type="button"
-      (click)="loadTicket()"
-      class="mt-3 rounded-lg border border-red-300 px-3 py-2 text-sm font-medium hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
-    >
-      {{ 'common.retry' | translate }}
-    </button>
-  </div>
-
-  <div *ngIf="ticket as currentTicket" data-testid="ticket-detail" [attr.data-ticket-id]="currentTicket.id" class="mt-6">
-    <a
-      [routerLink]="['/tickets', currentTicket.id, 'edit']"
-      data-testid="edit-ticket"
-      queryParamsHandling="preserve"
-      class="mb-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-    >
-      {{ 'common.editTicket' | translate }}
-    </a>
-    <article [appPriorityHighlight]="currentTicket.priority" class="rounded-xl border border-slate-200 p-5 sm:p-6">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p class="text-sm text-slate-500">{{ 'detail.ticketNumber' | translate: { id: currentTicket.id } }}</p>
-          <h1 data-testid="ticket-detail-title" class="mt-2 break-words text-3xl font-bold tracking-tight">{{ currentTicket.title }}</h1>
-        </div>
-        <app-ticket-status-badge [status]="currentTicket.status" />
-      </div>
-
-      <p class="mt-5 whitespace-pre-line leading-7 text-slate-600">{{ currentTicket.description }}</p>
-
-      <dl class="mt-6 grid gap-4 border-t border-slate-200 pt-5 text-sm sm:grid-cols-2 lg:grid-cols-3">
-        <div>
-          <dt class="text-slate-500">{{ 'common.priority' | translate }}</dt>
-          <dd class="mt-1 font-medium capitalize">{{ ('priorities.' + currentTicket.priority) | translate }}</dd>
-        </div>
-        <div>
-          <dt class="text-slate-500">{{ 'common.category' | translate }}</dt>
-          <dd class="mt-1 font-medium">{{ categoryName(currentTicket.categoryId) || ('common.unknownCategory' | translate) }}</dd>
-        </div>
-        <div>
-          <dt class="text-slate-500">{{ 'common.customer' | translate }}</dt>
-          <dd class="mt-1 font-medium">{{ userName(currentTicket.customerId) || ('common.unknownUser' | translate) }}</dd>
-        </div>
-        <div>
-          <dt class="text-slate-500">{{ 'common.assignee' | translate }}</dt>
-          <dd data-testid="ticket-detail-assignee" class="mt-1 font-medium">{{ currentTicket.assigneeId === null ? ('common.unassigned' | translate) : (userName(currentTicket.assigneeId) || ('common.unknownUser' | translate)) }}</dd>
-        </div>
-        <div>
-          <dt class="text-slate-500">{{ 'common.created' | translate }}</dt>
-          <dd class="mt-1 font-medium">
-            <time [attr.datetime]="currentTicket.createdAt">{{ currentTicket.createdAt | date: 'medium': undefined: (translate.getCurrentLang() || 'en') }}</time>
-          </dd>
-        </div>
-        <div>
-          <dt class="text-slate-500">{{ 'common.updated' | translate }}</dt>
-          <dd class="mt-1 font-medium">
-            <time [attr.datetime]="currentTicket.updatedAt">{{ currentTicket.updatedAt | timeAgo | async }}</time>
-          </dd>
-        </div>
-      </dl>
-
-      <section aria-labelledby="ticket-links-title" class="mt-6 border-t border-slate-200 pt-5">
-        <h2 id="ticket-links-title" class="font-semibold">{{ 'common.links' | translate }}</h2>
-        <p *ngIf="currentTicket.links.length === 0" class="mt-2 text-sm text-slate-500">{{ 'common.noLinks' | translate }}</p>
-        <ul *ngIf="currentTicket.links.length > 0" class="mt-2 space-y-2 text-sm">
-          <li *ngFor="let link of currentTicket.links">
-            <a
-              [href]="link"
-              data-testid="ticket-detail-link"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="break-all rounded text-indigo-700 underline hover:text-indigo-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            >
-              {{ link }}
-            </a>
-          </li>
-        </ul>
-      </section>
-    </article>
-
-    <section aria-labelledby="ticket-comments-title" class="mt-8">
-      <h2 id="ticket-comments-title" class="text-xl font-semibold">{{ 'comments.title' | translate }}</h2>
-      <p *ngIf="comments.length === 0" class="mt-3 text-slate-500">{{ 'comments.empty' | translate }}</p>
-      <ul *ngIf="comments.length > 0" class="mt-4 space-y-4">
-        <li *ngFor="let comment of comments">
-          <app-comment [attr.data-testid]="'comment-' + comment.id" [comment]="comment" [userName]="userName(comment.userId)" />
-        </li>
-      </ul>
-
-      <form #commentForm="ngForm" (ngSubmit)="addComment(commentForm)" class="mt-6 space-y-4" novalidate>
-        <div>
-          <label for="comment-body" class="block text-sm font-medium">{{ 'comments.label' | translate }}</label>
-          <textarea
-            id="comment-body"
-            data-testid="comment-input"
-            name="body"
-            rows="4"
-            required
-            [pattern]="commentPattern"
-            [(ngModel)]="commentBody"
-            (ngModelChange)="commentError = ''"
-            #commentInput="ngModel"
-            [disabled]="savingComment"
-            aria-describedby="comment-body-error"
-            [attr.aria-invalid]="commentInput.invalid && (commentInput.dirty || commentInput.touched || commentForm.submitted)"
-            class="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
-          ></textarea>
-          <p
-            id="comment-body-error"
-            data-testid="comment-input-error"
-            *ngIf="commentInput.invalid && (commentInput.dirty || commentInput.touched || commentForm.submitted)"
-            class="mt-2 text-sm text-red-700"
-          >
-            {{ 'validation.comment' | translate }}
-          </p>
-        </div>
-
-        <p *ngIf="commentError" data-testid="comment-save-error" [attr.data-error-key]="commentError" role="alert" class="rounded-lg bg-red-50 p-4 text-red-700">{{ commentError | translate }}</p>
-        <p *ngIf="savingComment" role="status" class="text-sm text-slate-600">{{ 'comments.adding' | translate }}</p>
+  @if (errorMessage()) {
+    <div role="alert" class="mt-6 rounded-lg bg-red-50 p-4 text-red-700">
+      <p>{{ errorMessage() | translate }}</p>
+      @if (!notFound()) {
         <button
-          data-testid="comment-submit"
-          type="submit"
-          [disabled]="savingComment"
-          class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
+          type="button"
+          (click)="loadTicket()"
+          class="mt-3 rounded-lg border border-red-300 px-3 py-2 text-sm font-medium hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
         >
-          {{ (savingComment ? 'comments.submitting' : 'comments.submit') | translate }}
+          {{ 'common.retry' | translate }}
         </button>
-      </form>
-    </section>
-  </div>
+      }
+    </div>
+  }
+
+  @if (ticket(); as currentTicket) {
+    <div data-testid="ticket-detail" [attr.data-ticket-id]="currentTicket.id" class="mt-6">
+      <a
+        [routerLink]="['/tickets', currentTicket.id, 'edit']"
+        data-testid="edit-ticket"
+        queryParamsHandling="preserve"
+        class="mb-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+      >
+        {{ 'common.editTicket' | translate }}
+      </a>
+      <article [appPriorityHighlight]="currentTicket.priority" class="rounded-xl border border-slate-200 p-5 sm:p-6">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p class="text-sm text-slate-500">{{ 'detail.ticketNumber' | translate: { id: currentTicket.id } }}</p>
+            <h1 data-testid="ticket-detail-title" class="mt-2 break-words text-3xl font-bold tracking-tight">{{ currentTicket.title }}</h1>
+          </div>
+          <app-ticket-status-badge [status]="currentTicket.status" />
+        </div>
+
+        <p class="mt-5 whitespace-pre-line leading-7 text-slate-600">{{ currentTicket.description }}</p>
+
+        <dl class="mt-6 grid gap-4 border-t border-slate-200 pt-5 text-sm sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <dt class="text-slate-500">{{ 'common.priority' | translate }}</dt>
+            <dd class="mt-1 font-medium capitalize">{{ ('priorities.' + currentTicket.priority) | translate }}</dd>
+          </div>
+          <div>
+            <dt class="text-slate-500">{{ 'common.category' | translate }}</dt>
+            <dd class="mt-1 font-medium">{{ categoryName() || ('common.unknownCategory' | translate) }}</dd>
+          </div>
+          <div>
+            <dt class="text-slate-500">{{ 'common.customer' | translate }}</dt>
+            <dd class="mt-1 font-medium">{{ customerName() || ('common.unknownUser' | translate) }}</dd>
+          </div>
+          <div>
+            <dt class="text-slate-500">{{ 'common.assignee' | translate }}</dt>
+            <dd data-testid="ticket-detail-assignee" class="mt-1 font-medium">{{ currentTicket.assigneeId === null ? ('common.unassigned' | translate) : (assigneeName() || ('common.unknownUser' | translate)) }}</dd>
+          </div>
+          <div>
+            <dt class="text-slate-500">{{ 'common.created' | translate }}</dt>
+            <dd class="mt-1 font-medium">
+              <time [attr.datetime]="currentTicket.createdAt">{{ currentTicket.createdAt | date: 'medium': undefined: (translate.getCurrentLang() || 'en') }}</time>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-slate-500">{{ 'common.updated' | translate }}</dt>
+            <dd class="mt-1 font-medium">
+              <time [attr.datetime]="currentTicket.updatedAt">{{ currentTicket.updatedAt | timeAgo | async }}</time>
+            </dd>
+          </div>
+        </dl>
+
+        <section aria-labelledby="ticket-links-title" class="mt-6 border-t border-slate-200 pt-5">
+          <h2 id="ticket-links-title" class="font-semibold">{{ 'common.links' | translate }}</h2>
+          @if (currentTicket.links.length === 0) {
+            <p class="mt-2 text-sm text-slate-500">{{ 'common.noLinks' | translate }}</p>
+          } @else {
+            <ul class="mt-2 space-y-2 text-sm">
+              @for (link of currentTicket.links; track $index) {
+                <li>
+                  <a
+                    [href]="link"
+                    data-testid="ticket-detail-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="break-all rounded text-indigo-700 underline hover:text-indigo-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  >
+                    {{ link }}
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </article>
+
+      <section aria-labelledby="ticket-comments-title" class="mt-8">
+        <h2 id="ticket-comments-title" class="text-xl font-semibold">{{ 'comments.title' | translate }}</h2>
+        @if (comments().length === 0) {
+          <p class="mt-3 text-slate-500">{{ 'comments.empty' | translate }}</p>
+        } @else {
+          <ul class="mt-4 space-y-4">
+            @for (comment of comments(); track comment.id) {
+              <li>
+                <app-comment [attr.data-testid]="'comment-' + comment.id" [comment]="comment" [userName]="userName(comment.userId)" />
+              </li>
+            }
+          </ul>
+        }
+
+        <form #commentForm="ngForm" (ngSubmit)="addComment(commentForm)" class="mt-6 space-y-4" novalidate>
+          <div>
+            <label for="comment-body" class="block text-sm font-medium">{{ 'comments.label' | translate }}</label>
+            <textarea
+              id="comment-body"
+              data-testid="comment-input"
+              name="body"
+              rows="4"
+              required
+              [pattern]="commentPattern"
+              [ngModel]="commentBody()"
+              (ngModelChange)="commentBody.set($event); commentError.set('')"
+              #commentInput="ngModel"
+              [disabled]="savingComment()"
+              aria-describedby="comment-body-error"
+              [attr.aria-invalid]="commentInput.invalid && (commentInput.dirty || commentInput.touched || commentForm.submitted)"
+              class="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:bg-slate-50"
+            ></textarea>
+            @if (commentInput.invalid && (commentInput.dirty || commentInput.touched || commentForm.submitted)) {
+              <p
+                id="comment-body-error"
+                data-testid="comment-input-error"
+                class="mt-2 text-sm text-red-700"
+              >
+                {{ 'validation.comment' | translate }}
+              </p>
+            }
+          </div>
+
+          @if (commentError()) {
+            <p data-testid="comment-save-error" [attr.data-error-key]="commentError()" role="alert" class="rounded-lg bg-red-50 p-4 text-red-700">{{ commentError() | translate }}</p>
+          }
+          @if (savingComment()) {
+            <p role="status" class="text-sm text-slate-600">{{ 'comments.adding' | translate }}</p>
+          }
+          <button
+            data-testid="comment-submit"
+            type="submit"
+            [disabled]="savingComment()"
+            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
+          >
+            {{ (savingComment() ? 'comments.submitting' : 'comments.submit') | translate }}
+          </button>
+        </form>
+      </section>
+    </div>
+  }
 </section>
