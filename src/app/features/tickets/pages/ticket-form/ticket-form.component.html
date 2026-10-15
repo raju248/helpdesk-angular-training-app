@@ -164,7 +164,7 @@
             type="button"
             (click)="removeLink(i)"
             data-testid="remove-link"
-            [disabled]="saving"
+            [disabled]="saving()"
             [attr.aria-label]="'ticketForm.removeLink' | translate: { index: i + 1 }"
             class="self-start rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
           >
@@ -184,7 +184,7 @@
         type="button"
         (click)="addLink()"
         data-testid="add-link"
-        [disabled]="saving"
+        [disabled]="saving()"
         class="mt-4 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
       >
         {{ 'ticketForm.addLink' | translate }}
@@ -192,16 +192,16 @@
     </fieldset>
 
     <p *ngIf="saveError" role="alert" class="rounded-lg bg-red-50 p-4 text-red-700">{{ saveError | translate }}</p>
-    <p *ngIf="saving" role="status" class="text-sm text-slate-600">{{ 'ticketForm.saving' | translate }}</p>
+    <p *ngIf="saving()" role="status" class="text-sm text-slate-600">{{ 'ticketForm.saving' | translate }}</p>
 
     <div class="flex flex-wrap gap-3 border-t border-slate-200 pt-5">
       <button
         data-testid="ticket-save"
         type="submit"
-        [disabled]="saving"
+        [disabled]="saving()"
         class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-default disabled:opacity-50"
       >
-        {{ (saving ? 'ticketForm.submitting' : editMode ? 'ticketForm.saveChanges' : 'common.createTicket') | translate }}
+        {{ (saving() ? 'ticketForm.submitting' : editMode ? 'ticketForm.saveChanges' : 'common.createTicket') | translate }}
       </button>
       <a
         [routerLink]="editMode && ticketId ? ['/tickets', ticketId] : ['/tickets']"

@@ -1,9 +1,9 @@
 import { TranslatePipe } from '@ngx-translate/core';
 import { NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, Subscription, finalize, forkJoin, map } from 'rxjs';
+import { Observable, Subject, Subscription, catchError, exhaustMap, finalize, forkJoin, map } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { User } from '../../../../core/auth/user.model';
@@ -30,6 +30,7 @@ export class TicketFormComponent implements OnInit, OnDestroy {
   private routeSubscription?: Subscription;
   private loadSubscription?: Subscription;
   private saveSubscription?: Subscription;
+  private readonly saveRequests = new Subject<Observable<Ticket>>();
 
   protected readonly form = this.formBuilder.group({
     title: this.formBuilder.nonNullable.control('', [Validators.required, Validators.pattern(/\S/)]),
@@ -56,7 +57,7 @@ export class TicketFormComponent implements OnInit, OnDestroy {
   protected categories: Category[] = [];
   protected agents: User[] = [];
   protected loading = true;
-  protected saving = false;
+  protected readonly saving = signal(false);
   protected notFound = false;
   protected loadError = '';
   protected saveError = '';
@@ -85,9 +86,33 @@ export class TicketFormComponent implements OnInit, OnDestroy {
     this.saveSubscription?.unsubscribe();
   }
 
+  private listenForSaves(): void {
+    this.saveSubscription = this.saveRequests.pipe(
+      exhaustMap((request) => {
+        this.saving.set(true);
+        this.form.disable();
+        return request.pipe(
+          finalize(() => {
+            this.saving.set(false);
+            this.form.enable();
+            this.changeDetectorRef.markForCheck();
+          }),
+        );
+      }),
+      catchError((error: unknown, saveStream) => {
+        this.saveError = error instanceof ApiError ? error.message : 'errors.ticketSave';
+        // Listen for the next submit event so the user can retry.
+        return saveStream;
+      }),
+    ).subscribe((ticket) => {
+      void this.router.navigate(['/tickets', ticket.id], { queryParamsHandling: 'preserve' });
+    });
+  }
+
   protected loadForm(): void {
     this.loadSubscription?.unsubscribe();
     this.saveSubscription?.unsubscribe();
+    this.listenForSaves();
     this.categories = [];
     this.agents = [];
     this.loadError = '';
@@ -157,7 +182,7 @@ export class TicketFormComponent implements OnInit, OnDestroy {
   }
 
   protected addLink(value = ''): void {
-    if (this.saving) {
+    if (this.saving()) {
       return;
     }
 
@@ -165,13 +190,13 @@ export class TicketFormComponent implements OnInit, OnDestroy {
   }
 
   protected removeLink(index: number): void {
-    if (!this.saving) {
+    if (!this.saving()) {
       this.links.removeAt(index);
     }
   }
 
   protected save(): void {
-    if (this.loading || this.saving || this.loadError || this.categories.length === 0) {
+    if (this.loading || this.loadError || this.categories.length === 0) {
       return;
     }
 
@@ -219,24 +244,6 @@ export class TicketFormComponent implements OnInit, OnDestroy {
           assigneeId: this.isAgent ? value.assigneeId : null,
           createdAt: changes.updatedAt,
         });
-
-    this.saving = true;
-    this.form.disable();
-    this.saveSubscription = request
-      .pipe(finalize(() => {
-        this.saving = false;
-        this.form.enable();
-        this.changeDetectorRef.markForCheck();
-      }))
-      .subscribe({
-        next: (ticket) => {
-          void this.router.navigate(['/tickets', ticket.id], { queryParamsHandling: 'preserve' });
-        },
-        error: (error: unknown) => {
-          this.saveError = error instanceof ApiError
-            ? error.message
-            : 'errors.ticketSave';
-        },
-      });
+    this.saveRequests.next(request);
   }
 }
