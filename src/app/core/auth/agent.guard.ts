@@ -1,26 +1,16 @@
-import { Injectable, inject } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 
 import { AuthService } from './auth.service';
 
-@Injectable({ providedIn: 'root' })
-export class AgentGuard implements CanActivate {
-  private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
+export const agentGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const user = authService.currentUser();
 
-  canActivate(): boolean {
-    const user = this.authService.currentUser;
-
-    if (!user) {
-      void this.router.navigate(['/login']);
-      return false;
-    }
-
-    if (user.role === 'agent') {
-      return true;
-    }
-
-    void this.router.navigate(['/tickets']);
-    return false;
+  if (!user) {
+    return router.createUrlTree(['/login']);
   }
-}
+
+  return user.role === 'agent' ? true : router.createUrlTree(['/tickets']);
+};

@@ -1,65 +1,54 @@
-import { DOCUMENT, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Subscription, filter, finalize } from 'rxjs';
+import { Subscription, catchError, filter, finalize } from 'rxjs';
 
 import { AuthService } from './core/auth/auth.service';
-import { User } from './core/auth/user.model';
 
 @Component({
   standalone: true,
-  imports: [FormsModule, NgIf, RouterLink, RouterLinkActive, RouterOutlet, TranslatePipe],
+  imports: [FormsModule, RouterLink, RouterLinkActive, RouterOutlet, TranslatePipe],
   selector: 'app-root',
   templateUrl: './app.component.html',
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly document = inject(DOCUMENT);
   private readonly pageTitle = inject(Title);
-  private currentUserSubscription?: Subscription;
-  private languageSubscription?: Subscription;
   private languageLoadSubscription?: Subscription;
-  private navigationSubscription?: Subscription;
 
-  protected currentUser: User | null = null;
-  protected language = 'en';
-  protected loadingLanguage = false;
-  protected languageError = '';
+  protected readonly currentUser = this.authService.currentUser;
+  protected readonly language = signal('en');
+  protected readonly loadingLanguage = signal(false);
+  protected readonly languageError = signal('');
 
   ngOnInit(): void {
-    this.currentUserSubscription = this.authService.currentUser$.subscribe((user) => {
-      this.currentUser = user;
-      this.changeDetectorRef.markForCheck();
-    });
-
-    this.languageSubscription = this.translate.onLangChange.subscribe(({ lang }) => {
-      this.language = lang;
-      this.document.documentElement.lang = lang;
-      this.updatePageTitle();
-      try {
-        localStorage.setItem('helpdesk.language', lang);
-      } catch {
-        // Language switching still works when browser storage is unavailable.
-      }
-      this.changeDetectorRef.markForCheck();
-    });
-    this.navigationSubscription = this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
+    this.translate.onLangChange
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ lang }) => {
+        this.language.set(lang);
+        this.document.documentElement.lang = lang;
+        this.updatePageTitle();
+        try {
+          localStorage.setItem('helpdesk.language', lang);
+        } catch {
+          // Language switching still works when browser storage is unavailable.
+        }
+      });
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe(() => this.updatePageTitle());
     this.switchLanguage(this.initialLanguage());
-  }
-
-  ngOnDestroy(): void {
-    this.currentUserSubscription?.unsubscribe();
-    this.languageSubscription?.unsubscribe();
-    this.languageLoadSubscription?.unsubscribe();
-    this.navigationSubscription?.unsubscribe();
   }
 
   protected switchLanguage(language: string): void {
@@ -68,21 +57,25 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     this.languageLoadSubscription?.unsubscribe();
-    this.language = language;
-    this.languageError = '';
-    this.loadingLanguage = true;
+    this.language.set(language);
+    this.languageError.set('');
+    this.loadingLanguage.set(true);
     this.languageLoadSubscription = this.translate.use(language)
-      .pipe(finalize(() => {
-        this.loadingLanguage = false;
-        this.changeDetectorRef.markForCheck();
-      }))
+      .pipe(
+        catchError((error: unknown) => {
+          if (!this.translate.getCurrentLang() && language !== 'en') {
+            this.language.set('en');
+            return this.translate.use('en');
+          }
+          throw error;
+        }),
+        finalize(() => this.loadingLanguage.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         error: () => {
-          if (!this.translate.getCurrentLang() && language !== 'en') {
-            this.switchLanguage('en');
-          }
-          this.language = this.translate.getCurrentLang() ?? 'en';
-          this.languageError = 'errors.languageLoad';
+          this.language.set(this.translate.getCurrentLang() ?? 'en');
+          this.languageError.set('errors.languageLoad');
         },
       });
   }

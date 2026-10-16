@@ -10,62 +10,71 @@
 
       <div class="flex flex-col gap-3 sm:items-end">
         <nav [attr.aria-label]="'app.navigation' | translate" class="flex flex-wrap gap-1 text-slate-600">
-          <a
-            *ngIf="currentUser"
-            routerLink="/tickets"
-            routerLinkActive="bg-indigo-50 text-indigo-700"
-            ariaCurrentWhenActive="page"
-            class="rounded-lg px-3 py-2 text-sm font-medium hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            {{ 'nav.tickets' | translate }}
-          </a>
-          <a
-            *ngIf="!currentUser"
-            routerLink="/login"
-            routerLinkActive="bg-indigo-50 text-indigo-700"
-            ariaCurrentWhenActive="page"
-            class="rounded-lg px-3 py-2 text-sm font-medium hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            {{ 'nav.login' | translate }}
-          </a>
-          <a
-            *ngIf="currentUser?.role === 'agent'"
-            routerLink="/admin"
-            routerLinkActive="bg-indigo-50 text-indigo-700"
-            ariaCurrentWhenActive="page"
-            class="rounded-lg px-3 py-2 text-sm font-medium hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            {{ 'nav.admin' | translate }}
-          </a>
+          @if (currentUser()) {
+            <a
+              routerLink="/tickets"
+              routerLinkActive="bg-indigo-50 text-indigo-700"
+              ariaCurrentWhenActive="page"
+              class="rounded-lg px-3 py-2 text-sm font-medium hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              {{ 'nav.tickets' | translate }}
+            </a>
+          }
+          @if (!currentUser()) {
+            <a
+              routerLink="/login"
+              routerLinkActive="bg-indigo-50 text-indigo-700"
+              ariaCurrentWhenActive="page"
+              class="rounded-lg px-3 py-2 text-sm font-medium hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              {{ 'nav.login' | translate }}
+            </a>
+          }
+          @if (currentUser()?.role === 'agent') {
+            <a
+              routerLink="/admin"
+              routerLinkActive="bg-indigo-50 text-indigo-700"
+              ariaCurrentWhenActive="page"
+              class="rounded-lg px-3 py-2 text-sm font-medium hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              {{ 'nav.admin' | translate }}
+            </a>
+          }
         </nav>
-        <div *ngIf="currentUser as user" class="flex flex-wrap items-center gap-3 text-sm">
-          <p class="text-slate-600">{{ user.name }} <span class="text-slate-500">({{ ('roles.' + user.role) | translate }})</span></p>
-          <button
-            data-testid="logout"
-            type="button"
-            (click)="logout()"
-            class="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            {{ 'nav.logout' | translate }}
-          </button>
-        </div>
+        @if (currentUser(); as user) {
+          <div class="flex flex-wrap items-center gap-3 text-sm">
+            <p class="text-slate-600">{{ user.name }} <span class="text-slate-500">({{ ('roles.' + user.role) | translate }})</span></p>
+            <button
+              data-testid="logout"
+              type="button"
+              (click)="logout()"
+              class="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              {{ 'nav.logout' | translate }}
+            </button>
+          </div>
+        }
         <div class="flex flex-wrap items-center gap-2 text-sm">
           <label for="language-select" class="font-medium text-slate-600">{{ 'app.language' | translate }}</label>
           <select
             id="language-select"
             data-testid="language-select"
             name="language"
-            [(ngModel)]="language"
+            [ngModel]="language()"
             (ngModelChange)="switchLanguage($event)"
-            [disabled]="loadingLanguage"
+            [disabled]="loadingLanguage()"
             class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 focus:border-indigo-600 focus:outline-2 focus:outline-indigo-600 disabled:opacity-50"
           >
             <option value="en">{{ 'languages.en' | translate }}</option>
             <option value="bn">{{ 'languages.bn' | translate }}</option>
           </select>
-          <p *ngIf="loadingLanguage" role="status" class="text-slate-500">{{ 'app.changingLanguage' | translate }}</p>
+          @if (loadingLanguage()) {
+            <p role="status" class="text-slate-500">{{ 'app.changingLanguage' | translate }}</p>
+          }
         </div>
-        <p *ngIf="languageError" role="alert" class="text-sm text-red-700">{{ languageError | translate }}</p>
+        @if (languageError()) {
+          <p role="alert" class="text-sm text-red-700">{{ languageError() | translate }}</p>
+        }
       </div>
     </div>
   </header>

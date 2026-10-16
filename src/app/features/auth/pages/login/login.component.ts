@@ -1,5 +1,4 @@
 import { TranslatePipe } from '@ngx-translate/core';
-import { NgFor, NgIf } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,7 +9,7 @@ import { DemoUser } from '../../../../core/auth/user.model';
 
 @Component({
   standalone: true,
-  imports: [TranslatePipe, FormsModule, NgIf, NgFor],
+  imports: [TranslatePipe, FormsModule],
   selector: 'app-login',
   templateUrl: './login.component.html',
 })

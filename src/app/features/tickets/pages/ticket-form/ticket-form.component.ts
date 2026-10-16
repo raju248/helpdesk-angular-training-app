@@ -1,9 +1,9 @@
 import { TranslatePipe } from '@ngx-translate/core';
-import { NgFor, NgIf } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, Subject, Subscription, catchError, exhaustMap, finalize, forkJoin, map } from 'rxjs';
+import { Observable, Subscription, finalize, forkJoin, map } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
 import { User } from '../../../../core/auth/user.model';
@@ -17,20 +17,17 @@ import { httpUrlValidator } from '../../validators/http-url.validator';
 @Component({
   standalone: true,
   selector: 'app-ticket-form',
-  imports: [TranslatePipe, NgFor, NgIf, ReactiveFormsModule, RouterLink],
+  imports: [TranslatePipe, ReactiveFormsModule, RouterLink],
   templateUrl: './ticket-form.component.html',
 })
-export class TicketFormComponent implements OnInit, OnDestroy {
+export class TicketFormComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly ticketService = inject(TicketService);
   private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly changeDetectorRef = inject(ChangeDetectorRef);
-  private routeSubscription?: Subscription;
+  private readonly destroyRef = inject(DestroyRef);
   private loadSubscription?: Subscription;
-  private saveSubscription?: Subscription;
-  private readonly saveRequests = new Subject<Observable<Ticket>>();
 
   protected readonly form = this.formBuilder.group({
     title: this.formBuilder.nonNullable.control('', [Validators.required, Validators.pattern(/\S/)]),
@@ -54,83 +51,52 @@ export class TicketFormComponent implements OnInit, OnDestroy {
   ];
   protected ticketId: number | null = null;
   protected editMode = false;
-  protected categories: Category[] = [];
-  protected agents: User[] = [];
-  protected loading = true;
+  protected readonly categories = signal<Category[]>([]);
+  protected readonly agents = signal<User[]>([]);
+  protected readonly loading = signal(true);
   protected readonly saving = signal(false);
-  protected notFound = false;
-  protected loadError = '';
-  protected saveError = '';
+  protected readonly notFound = signal(false);
+  protected readonly loadError = signal('');
+  protected readonly saveError = signal('');
 
   protected get links(): FormArray<FormControl<string>> {
     return this.form.controls.links;
   }
 
   protected get isAgent(): boolean {
-    return this.authService.currentUser?.role === 'agent';
+    return this.authService.currentUser()?.role === 'agent';
   }
 
   ngOnInit(): void {
-    this.routeSubscription = this.route.paramMap.subscribe((params) => {
-      const rawId = params.get('id');
-      const id = Number(rawId);
-      this.editMode = rawId !== null;
-      this.ticketId = this.editMode && Number.isSafeInteger(id) && id > 0 ? id : null;
-      this.loadForm();
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.routeSubscription?.unsubscribe();
-    this.loadSubscription?.unsubscribe();
-    this.saveSubscription?.unsubscribe();
-  }
-
-  private listenForSaves(): void {
-    this.saveSubscription = this.saveRequests.pipe(
-      exhaustMap((request) => {
-        this.saving.set(true);
-        this.form.disable();
-        return request.pipe(
-          finalize(() => {
-            this.saving.set(false);
-            this.form.enable();
-            this.changeDetectorRef.markForCheck();
-          }),
-        );
-      }),
-      catchError((error: unknown, saveStream) => {
-        this.saveError = error instanceof ApiError ? error.message : 'errors.ticketSave';
-        // Listen for the next submit event so the user can retry.
-        return saveStream;
-      }),
-    ).subscribe((ticket) => {
-      void this.router.navigate(['/tickets', ticket.id], { queryParamsHandling: 'preserve' });
-    });
+    this.route.paramMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const rawId = params.get('id');
+        const id = Number(rawId);
+        this.editMode = rawId !== null;
+        this.ticketId = this.editMode && Number.isSafeInteger(id) && id > 0 ? id : null;
+        this.loadForm();
+      });
   }
 
   protected loadForm(): void {
     this.loadSubscription?.unsubscribe();
-    this.saveSubscription?.unsubscribe();
-    this.listenForSaves();
-    this.categories = [];
-    this.agents = [];
-    this.loadError = '';
-    this.saveError = '';
-    this.notFound = false;
+    this.categories.set([]);
+    this.agents.set([]);
+    this.loadError.set('');
+    this.saveError.set('');
+    this.notFound.set(false);
     this.links.clear();
     this.form.reset({ title: '', description: '', priority: 'medium', categoryId: null, status: 'open', assigneeId: null });
 
     if (this.editMode && this.ticketId === null) {
-      this.loading = false;
-      this.notFound = true;
-      this.loadError = 'errors.ticketNotFound';
-      this.changeDetectorRef.markForCheck();
+      this.loading.set(false);
+      this.notFound.set(true);
+      this.loadError.set('errors.ticketNotFound');
       return;
     }
 
-    this.loading = true;
-    this.changeDetectorRef.markForCheck();
+    this.loading.set(true);
     const request: Observable<{ categories: Category[]; ticket: Ticket | null }> = this.ticketId !== null
       ? forkJoin({
           categories: this.ticketService.getCategories(),
@@ -145,14 +111,14 @@ export class TicketFormComponent implements OnInit, OnDestroy {
       : request.pipe(map((data) => ({ ...data, agents: [] })));
 
     this.loadSubscription = formData
-      .pipe(finalize(() => {
-        this.loading = false;
-        this.changeDetectorRef.markForCheck();
-      }))
+      .pipe(
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: ({ categories, ticket, agents }) => {
-          this.categories = categories;
-          this.agents = agents;
+          this.categories.set(categories);
+          this.agents.set(agents);
 
           if (ticket) {
             this.form.patchValue({
@@ -169,14 +135,15 @@ export class TicketFormComponent implements OnInit, OnDestroy {
           }
         },
         error: (error: unknown) => {
-          this.notFound = error instanceof ApiError
+          const notFound = error instanceof ApiError
             && error.status === 404
             && !!error.url?.endsWith(`/tickets/${this.ticketId}`);
-          this.loadError = this.notFound
+          this.notFound.set(notFound);
+          this.loadError.set(notFound
             ? 'errors.ticketNotFound'
             : error instanceof ApiError
               ? error.message
-              : 'errors.ticketFormLoad';
+              : 'errors.ticketFormLoad');
         },
       });
   }
@@ -196,18 +163,18 @@ export class TicketFormComponent implements OnInit, OnDestroy {
   }
 
   protected save(): void {
-    if (this.loading || this.loadError || this.categories.length === 0) {
+    if (this.saving() || this.loading() || this.loadError() || this.categories().length === 0) {
       return;
     }
 
-    this.saveError = '';
+    this.saveError.set('');
     this.form.markAllAsTouched();
 
     if (this.form.invalid) {
       return;
     }
 
-    const user = this.authService.currentUser;
+    const user = this.authService.currentUser();
     if (!user) {
       void this.router.navigate(['/login']);
       return;
@@ -218,8 +185,8 @@ export class TicketFormComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.isAgent && value.assigneeId !== null && !this.agents.some((agent) => agent.id === value.assigneeId)) {
-      this.saveError = 'validation.assignee';
+    if (this.isAgent && value.assigneeId !== null && !this.agents().some((agent) => agent.id === value.assigneeId)) {
+      this.saveError.set('validation.assignee');
       return;
     }
 
@@ -244,6 +211,23 @@ export class TicketFormComponent implements OnInit, OnDestroy {
           assigneeId: this.isAgent ? value.assigneeId : null,
           createdAt: changes.updatedAt,
         });
-    this.saveRequests.next(request);
+    this.saving.set(true);
+    this.form.disable();
+    request
+      .pipe(
+        finalize(() => {
+          this.saving.set(false);
+          this.form.enable();
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (ticket) => {
+          void this.router.navigate(['/tickets', ticket.id], { queryParamsHandling: 'preserve' });
+        },
+        error: (error: unknown) => {
+          this.saveError.set(error instanceof ApiError ? error.message : 'errors.ticketSave');
+        },
+      });
   }
 }

@@ -1,6 +1,7 @@
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, finalize, forkJoin } from 'rxjs';
@@ -23,13 +24,13 @@ import { TicketService } from '../../services/ticket.service';
   imports: [AsyncPipe, TranslatePipe, DatePipe, FormsModule, RouterLink, CommentComponent, TicketStatusBadgeComponent, PriorityHighlightDirective, TimeAgoPipe],
   templateUrl: './ticket-detail.component.html',
 })
-export class TicketDetailComponent implements OnInit, OnDestroy {
+export class TicketDetailComponent implements OnInit {
   protected readonly translate = inject(TranslateService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly ticketService = inject(TicketService);
-  private routeSubscription?: Subscription;
+  private readonly destroyRef = inject(DestroyRef);
   private ticketSubscription?: Subscription;
   private commentSubscription?: Subscription;
   private ticketId: number | null = null;
@@ -53,17 +54,13 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
   protected readonly assigneeName = computed(() => this.userName(this.ticket()?.assigneeId ?? null));
 
   ngOnInit(): void {
-    this.routeSubscription = this.route.paramMap.subscribe((params) => {
-      const id = Number(params.get('id'));
-      this.ticketId = Number.isSafeInteger(id) && id > 0 ? id : null;
-      this.loadTicket();
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.routeSubscription?.unsubscribe();
-    this.ticketSubscription?.unsubscribe();
-    this.commentSubscription?.unsubscribe();
+    this.route.paramMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const id = Number(params.get('id'));
+        this.ticketId = Number.isSafeInteger(id) && id > 0 ? id : null;
+        this.loadTicket();
+      });
   }
 
   protected loadTicket(): void {
@@ -96,6 +93,7 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
         finalize(() => {
           this.loading.set(false);
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: ({ ticket, comments, users, categories }) => {
@@ -132,7 +130,7 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const user = this.authService.currentUser;
+    const user = this.authService.currentUser();
     if (!user) {
       void this.router.navigate(['/login']);
       return;
@@ -145,9 +143,10 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
       body,
       createdAt: new Date().toISOString(),
     })
-      .pipe(finalize(() => {
-        this.savingComment.set(false);
-      }))
+      .pipe(
+        finalize(() => this.savingComment.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (comment) => {
           this.comments.update((comments) => [...comments, comment]);

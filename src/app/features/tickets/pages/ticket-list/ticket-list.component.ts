@@ -1,12 +1,11 @@
 import { TranslatePipe } from '@ngx-translate/core';
-import { NgFor } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   Observable,
   Subject,
-  Subscription,
   catchError,
   debounceTime,
   distinctUntilChanged,
@@ -24,19 +23,17 @@ import { TicketService } from '../../services/ticket.service';
 @Component({
   standalone: true,
   selector: 'app-ticket-list',
-  imports: [TranslatePipe, FormsModule, NgFor, RouterLink, TicketListViewComponent],
+  imports: [TranslatePipe, FormsModule, RouterLink, TicketListViewComponent],
   templateUrl: './ticket-list.component.html',
 })
-export class TicketListComponent implements OnInit, OnDestroy {
+export class TicketListComponent implements OnInit {
   private readonly ticketService = inject(TicketService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly searchChanges = new Subject<string>();
   private readonly ticketRequests = new Subject<TicketFilters>();
-  private searchSubscription?: Subscription;
-  private queryParamSubscription?: Subscription;
-  private ticketSubscription?: Subscription;
   private searchQuery = '';
 
   protected readonly statusOptions: readonly { value: TicketStatus; label: string }[] = [
@@ -58,7 +55,7 @@ export class TicketListComponent implements OnInit, OnDestroy {
   protected errorMessage = '';
 
   ngOnInit(): void {
-    this.ticketSubscription = this.ticketRequests
+    this.ticketRequests
       .pipe(
         switchMap((filters) => {
           this.loading = true;
@@ -80,13 +77,19 @@ export class TicketListComponent implements OnInit, OnDestroy {
             }),
           );
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((tickets) => {
         this.tickets = tickets;
       });
 
-    this.searchSubscription = this.searchChanges
-      .pipe(map((term) => term.trim()), distinctUntilChanged(), debounceTime(300))
+    this.searchChanges
+      .pipe(
+        map((term) => term.trim()),
+        distinctUntilChanged(),
+        debounceTime(300),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((term) => {
         if (term !== this.searchQuery) {
           this.searchTerm = term;
@@ -94,35 +97,29 @@ export class TicketListComponent implements OnInit, OnDestroy {
         }
       });
 
-    this.queryParamSubscription = this.route.queryParamMap.subscribe((params) => {
-      const status = params.get('status');
-      const priority = params.get('priority');
-      const search = params.get('q');
-      this.statusFilter = this.statusOptions.find((option) => option.value === status)?.value ?? '';
-      this.priorityFilter = this.priorityOptions.find((option) => option.value === priority)?.value ?? '';
-      this.searchQuery = search?.trim() ?? '';
-      this.searchTerm = this.searchQuery;
-      this.searchChanges.next(this.searchQuery);
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const status = params.get('status');
+        const priority = params.get('priority');
+        const search = params.get('q');
+        this.statusFilter = this.statusOptions.find((option) => option.value === status)?.value ?? '';
+        this.priorityFilter = this.priorityOptions.find((option) => option.value === priority)?.value ?? '';
+        this.searchQuery = search?.trim() ?? '';
+        this.searchTerm = this.searchQuery;
+        this.searchChanges.next(this.searchQuery);
 
-      if (
-        (status !== null && status !== this.statusFilter) ||
-        (priority !== null && priority !== this.priorityFilter) ||
-        (search !== null && search !== this.searchQuery)
-      ) {
-        this.updateFilters(true);
-        return;
-      }
+        if (
+          (status !== null && status !== this.statusFilter) ||
+          (priority !== null && priority !== this.priorityFilter) ||
+          (search !== null && search !== this.searchQuery)
+        ) {
+          this.updateFilters(true);
+          return;
+        }
 
-      this.loadTickets();
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.queryParamSubscription?.unsubscribe();
-    this.searchSubscription?.unsubscribe();
-    this.ticketSubscription?.unsubscribe();
-    this.searchChanges.complete();
-    this.ticketRequests.complete();
+        this.loadTickets();
+      });
   }
 
   protected search(term: string): void {

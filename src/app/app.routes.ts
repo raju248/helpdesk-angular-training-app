@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 
-import { AgentGuard } from './core/auth/agent.guard';
-import { AuthGuard } from './core/auth/auth.guard';
-import { GuestGuard } from './core/auth/guest.guard';
+import { agentGuard } from './core/auth/agent.guard';
+import { authGuard } from './core/auth/auth.guard';
+import { guestGuard } from './core/auth/guest.guard';
 import { LoginComponent } from './features/auth/pages/login/login.component';
 import { TicketDetailComponent } from './features/tickets/pages/ticket-detail/ticket-detail.component';
 import { TicketFormComponent } from './features/tickets/pages/ticket-form/ticket-form.component';
@@ -16,37 +16,37 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    canActivate: [GuestGuard],
+    canActivate: [guestGuard],
     component: LoginComponent,
     data: { titleKey: 'pageTitles.login' },
   },
   {
     path: 'tickets',
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     component: TicketListComponent,
     data: { titleKey: 'pageTitles.tickets' },
   },
   {
     path: 'tickets/new',
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     component: TicketFormComponent,
     data: { titleKey: 'pageTitles.create' },
   },
   {
     path: 'tickets/:id/edit',
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     component: TicketFormComponent,
     data: { titleKey: 'pageTitles.edit' },
   },
   {
     path: 'tickets/:id',
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     component: TicketDetailComponent,
     data: { titleKey: 'pageTitles.detail' },
   },
   {
     path: 'admin',
-    canActivate: [AgentGuard],
+    canActivate: [agentGuard],
     loadChildren: () => import('./features/admin/admin.routes').then((m) => m.adminRoutes),
   },
 ];

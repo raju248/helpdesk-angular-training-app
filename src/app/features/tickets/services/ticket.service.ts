@@ -18,7 +18,7 @@ export class TicketService {
 
   getTickets(filters: TicketFilters = {}): Observable<Ticket[]> {
     let params = new HttpParams();
-    const user = this.authService.currentUser;
+    const user = this.authService.currentUser();
 
     if (user?.role === 'customer') {
       params = params.set('customerId', user.id);
@@ -42,7 +42,7 @@ export class TicketService {
   }
 
   getTicket(id: number): Observable<Ticket> {
-    const user = this.authService.currentUser;
+    const user = this.authService.currentUser();
 
     if (user?.role === 'customer') {
       const params = new HttpParams().set('id', id).set('customerId', user.id);
@@ -61,7 +61,7 @@ export class TicketService {
   }
 
   createTicket(ticket: CreateTicketRequest): Observable<Ticket> {
-    const user = this.authService.currentUser;
+    const user = this.authService.currentUser();
     return this.http.post<Ticket>(this.ticketsUrl, {
       ...ticket,
       customerId: user?.id ?? ticket.customerId,
@@ -72,7 +72,7 @@ export class TicketService {
 
   updateTicket(id: number, changes: UpdateTicketRequest): Observable<Ticket> {
     if (
-      this.authService.currentUser?.role !== 'agent'
+      this.authService.currentUser()?.role !== 'agent'
       && (changes.status !== undefined || changes.assigneeId !== undefined)
     ) {
       return new Observable<Ticket>((subscriber) => {
@@ -111,7 +111,7 @@ export class TicketService {
     return this.getTicket(comment.ticketId).pipe(
       switchMap(() => this.http.post<Comment>(`${environment.apiUrl}/comments`, {
         ...comment,
-        userId: this.authService.currentUser?.id ?? comment.userId,
+        userId: this.authService.currentUser()?.id ?? comment.userId,
       })),
     );
   }

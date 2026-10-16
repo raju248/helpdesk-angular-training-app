@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { WritableSignal, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Subscription } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -28,11 +29,11 @@ describe('TicketService', () => {
   };
   let service: TicketService;
   let http: HttpTestingController;
-  let auth: { currentUser: User };
+  let auth: { currentUser: WritableSignal<User | null> };
   let subscription: Subscription | undefined;
 
   beforeEach(() => {
-    auth = { currentUser: DEMO_USERS[0] };
+    auth = { currentUser: signal<User | null>(DEMO_USERS[0]) };
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -62,7 +63,7 @@ describe('TicketService', () => {
   });
 
   it('loads a ticket by its URL for an agent', () => {
-    auth.currentUser = DEMO_USERS[1];
+    auth.currentUser.set(DEMO_USERS[1]);
     let result: Ticket | undefined;
     subscription = service.getTicket(ticket.id).subscribe((value) => { result = value; });
 
@@ -98,7 +99,7 @@ describe('TicketService', () => {
   });
 
   it('checks ticket access before patching an agent update', () => {
-    auth.currentUser = DEMO_USERS[1];
+    auth.currentUser.set(DEMO_USERS[1]);
     const changes: UpdateTicketRequest = {
       title: 'Updated invoice ticket',
       description: ticket.description,

@@ -1,5 +1,5 @@
 import { TranslatePipe } from '@ngx-translate/core';
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 import { TicketStatusBadgeComponent } from '../../../../shared/components/ticket-status-badge/ticket-status-badge.component';
@@ -10,7 +10,7 @@ import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
 @Component({
   standalone: true,
   selector: 'app-ticket-list-view',
-  imports: [AsyncPipe, TranslatePipe, NgFor, NgIf, TicketStatusBadgeComponent, PriorityHighlightDirective, TimeAgoPipe],
+  imports: [AsyncPipe, TranslatePipe, TicketStatusBadgeComponent, PriorityHighlightDirective, TimeAgoPipe],
   templateUrl: './ticket-list-view.component.html',
 })
 export class TicketListViewComponent {

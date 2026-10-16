@@ -1,5 +1,4 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, signal } from '@angular/core';
 
 import { DEMO_USERS } from './demo-users';
 import { DemoUser, User } from './user.model';
@@ -16,20 +15,16 @@ const SESSION_STORAGE_KEY = 'helpdesk.session';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private session: AuthSession | null = this.restoreSession();
-  private readonly currentUserSubject = new BehaviorSubject<User | null>(null);
+  private readonly currentUserState = signal<User | null>(null);
 
-  readonly currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
+  readonly currentUser = this.currentUserState.asReadonly();
 
   constructor() {
     const user = DEMO_USERS.find((demoUser) => demoUser.id === this.session?.userId);
 
     if (user) {
-      this.currentUserSubject.next(this.toUser(user));
+      this.currentUserState.set(this.toUser(user));
     }
-  }
-
-  get currentUser(): User | null {
-    return this.currentUserSubject.value;
   }
 
   get token(): string | null {
@@ -55,14 +50,14 @@ export class AuthService {
     }
 
     this.session = session;
-    this.currentUserSubject.next(this.toUser(user));
+    this.currentUserState.set(this.toUser(user));
     return 'success';
   }
 
   logout(): void {
     this.clearStoredSession();
     this.session = null;
-    this.currentUserSubject.next(null);
+    this.currentUserState.set(null);
   }
 
   private restoreSession(): AuthSession | null {
